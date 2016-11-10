@@ -69,7 +69,11 @@ def main():
     # import pydevd
     # pydevd.settrace(suspend=False)
 
-    from peek_server.AppConfig import appConfig
+    from peek_worker.PeekWorkerApp import appConfig
+
+    from peek_platform import PeekPlatformConfig
+    PeekPlatformConfig.config = peekAgentConfig
+    PeekPlatformConfig.componentName = "peek_agent"
 
     # Set paths for the Directory object
     DirSettings.defaultDirChmod = appConfig.defaultDirChmod
