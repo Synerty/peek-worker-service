@@ -19,7 +19,7 @@ VER="${VER}"
 DATE="`convertBambooDate`"
 
 if [ "${VER}" == '${bamboo.jira.version}' ]; then
-    VER="b`date +%y%m%d.%H%M`"
+    VER="b${DATE}"
 fi
 
 
