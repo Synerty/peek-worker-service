@@ -31,6 +31,7 @@ cp -pr rapui/src/rapui $DIR
 cp -pr peek_platform/src/peek_platform $DIR
 cp -pr peek_worker/src/peek_worker $DIR
 cp -p  peek_worker/src/run_peek_worker.py $DIR
+cp -pr jsoncfg/src/jsoncfg $DIR
 
 # Init scripts, etc
 cp -p  peek_worker/init/peek_worker.init.rhel.sh $DIR
