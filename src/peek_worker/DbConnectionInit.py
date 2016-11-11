@@ -2,7 +2,7 @@ import logging
 
 from celery.signals import worker_process_init, worker_process_shutdown
 
-from proj import DbConnection
+from peek_worker import DbConnection
 
 logger = logging.getLogger(__name__)
 

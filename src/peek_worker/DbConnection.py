@@ -12,11 +12,11 @@ _Session = None
 def getEngine():
     global _dbEngine
     if not _dbEngine:
-        from peek_server.AppConfig import appConfig
+        from peek_worker.PeekWorkerConfig import peekWorkerConfig
         _dbEngine = create_engine(
-            appConfig.dbConnectString,
+            peekWorkerConfig.dbConnectString,
             echo=False,
-            pool_size=1,  # Number of connections to keep open
+            pool_size=12,  # Number of connections to keep open
             max_overflow=50,  # Number that the pool size can exceed when required
             pool_timeout=60,  # Timeout for getting conn from pool
             pool_recycle=600  # Reconnect?? after 10 minutes

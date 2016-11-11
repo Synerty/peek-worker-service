@@ -7,5 +7,9 @@
     <orderEntry type="jdk" jdkName="PyPy 2.4.0 [Python 2.7.8] virtualenv at ~/pypy" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="peek_platform" />
+    <orderEntry type="module" module-name="papp_base" />
+    <orderEntry type="module" module-name="rapui" />
+    <orderEntry type="module" module-name="txCelery" />
+    <orderEntry type="module" module-name="json-cfg" />
   </component>
 </module>
