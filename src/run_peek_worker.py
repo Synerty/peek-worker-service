@@ -38,6 +38,9 @@ logger = logging.getLogger(__name__)
 # Set the parallelism of the database and reactor
 reactor.suggestThreadPoolSize(10)
 
+# Enable this for PYPY
+from psycopg2cffi import compat
+compat.register()
 
 def main():
     # defer.setDebugging(True)
