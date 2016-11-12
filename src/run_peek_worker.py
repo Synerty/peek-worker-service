@@ -11,6 +11,8 @@
  *  Synerty Pty Ltd
  *
 """
+import threading
+
 import celery
 from celery.signals import worker_shutdown
 
@@ -78,6 +80,10 @@ def configureLogging(*args, **kwargs):
     from peek_worker.PeekWorkerConfig import peekWorkerConfig
     logging.root.setLevel(peekWorkerConfig.loggingLevel)
 
+# Create the startup mutex, twisted has to load the papps before celery starts.
+twistedPappsLoadedMutex = threading.Lock()
+assert twistedPappsLoadedMutex.acquire()
+
 def twistedMain():
     # defer.setDebugging(True)
     # sys.argv.remove(DEBUG_ARG)
@@ -110,6 +116,9 @@ def twistedMain():
                   logger.info('Peek Worker is running, version=%s',
                               peekWorkerConfig.platformVersion))
 
+    # Unlock the mutex
+    d.addCallback(lambda _: twistedPappsLoadedMutex.release())
+
     d.addErrback(printFailure)
 
     # Run the reactor in a thread
@@ -137,4 +146,9 @@ if __name__ == '__main__':
     # Initialise and run all the twisted stuff in another thread.
     Thread(target=twistedMain).start()
 
+    # Block until twisted has released it's lock
+    twistedPappsLoadedMutex.acquire()
+
+    # Start the celery blocking main thread
     celeryMain()
+    logger.info("Celery has shutdown")
