@@ -22,6 +22,7 @@ class _CeleryLoaderMixin:
     Separate some logic out into this class
 
     '''
+
     @property
     def celeryAppIncludes(self):
         includes = []
@@ -81,11 +82,11 @@ class PappWorkerLoader(PappLoaderBase, _CeleryLoaderMixin):
 
         modPath = os.path.join(srcDir, pappName, "PappWorkerMain.py")
         if not os.path.exists(modPath) and os.path.exists(modPath + u"c"):  # .pyc
-            PappWorkerMainMod = imp.load_compiled('%s.PappWorkerMain' % pappName,
-                                                  modPath + u'c')
+            PappWorkerMainMod = imp.load_compiled(
+                '%s.PappWorkerMain' % pappName, modPath + u'c')
         else:
-            PappWorkerMainMod = imp.load_source('%s.PappWorkerMain' % pappName,
-                                                modPath)
+            PappWorkerMainMod = imp.load_source(
+                '%s.PappWorkerMain' % pappName, modPath)
 
         peekClient = PappWorkerMainMod.PappWorkerMain(workerPlatformApi)
 
