@@ -13,8 +13,16 @@
 """
 import signal
 
+import __pypy__
+
+import thread
+
+import sys
+
+import os
 from celery.signals import eventlet_pool_preshutdown, worker_shutdown
 
+from peek_platform.sw_install.PeekSwInstallManagerBase import PeekSwInstallManagerBase
 from rapui import LoggingSetup
 
 LoggingSetup.setup()
@@ -48,14 +56,10 @@ from psycopg2cffi import compat
 
 compat.register()
 
-
-def main():
-    # defer.setDebugging(True)
-    # sys.argv.remove(DEBUG_ARG)
-    # import pydevd
-    # pydevd.settrace(suspend=False)
+# Allow the twisted reactor thread to restart the worker process
 
 
+def platformSetup():
     from peek_platform import PeekPlatformConfig
     PeekPlatformConfig.componentName = "peek_worker"
 
@@ -73,6 +77,13 @@ def main():
     # Initialise the rapui Directory object
     DirSettings.defaultDirChmod = peekWorkerConfig.DEFAULT_DIR_CHMOD
     DirSettings.tmpDirPath = peekWorkerConfig.tmpPath
+
+
+def twistedMain():
+    # defer.setDebugging(True)
+    # sys.argv.remove(DEBUG_ARG)
+    # import pydevd
+    # pydevd.settrace(suspend=False)
 
     # Load server restart handler handler
     from peek_platform.PeekServerRestartWatchHandler import PeekServerRestartWatchHandler
@@ -95,6 +106,7 @@ def main():
     d.addBoth(lambda _: pappWorkerLoader.loadAllPapps())
 
     # Log that the reactor has started
+    from peek_worker.PeekWorkerConfig import peekWorkerConfig
     d.addCallback(lambda _:
                   logger.info('Peek Worker is running, version=%s',
                               peekWorkerConfig.platformVersion))
@@ -103,8 +115,11 @@ def main():
 
     # Run the reactor in a thread
     reactor.callLater(0, logger.info, "Reactor started")
-    Thread(target=reactor.run, args=(False,)).start()
 
+    reactor.run(installSignalHandlers=False)
+
+
+def celeryMain():
     # Load all Papps
     logger.info("Starting Celery")
     from peek_worker import PeekWorkerApp
@@ -112,7 +127,7 @@ def main():
 
 
 @worker_shutdown.connect
-def thing(sender, signal):
+def twistedShutdown(sender, signal):
     # SIGCLD is the one sent when pycharm restarts
     logger.info("Reactor stopping, Celery pool is shutting down.")
 
@@ -121,4 +136,9 @@ def thing(sender, signal):
 
 
 if __name__ == '__main__':
-    main()
+    platformSetup()
+
+    # Initialise and run all the twisted stuff in another thread.
+    Thread(target=twistedMain).start()
+
+    celeryMain()

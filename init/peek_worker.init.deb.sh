@@ -1,19 +1,19 @@
 #!/bin/sh
  
 ### BEGIN INIT INFO
-# Provides:          peek_server
+# Provides:          peek_worker
 # Required-Start:    $remote_fs $syslog postgresql
 # Required-Stop:     $remote_fs $syslog postgresql
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: peek_server, Extensible Model Viewer
-# Description:       peek_server, Extensible Model Viewer
+# Short-Description: peek_worker, Extensible Model Viewer
+# Description:       peek_worker, Extensible Model Viewer
 ### END INIT INFO
 
 # Change the next 3 lines to suit where you install your script and what you want to call it
 HOME=/home/peek
 DIR=${HOME}/peek
-DAEMON="$DIR/peek_server.pyc"
+DAEMON="$DIR/peek_worker.pyc"
 DAEMON_NAME=peek
 
 # This next line determines what user the script runs as.
