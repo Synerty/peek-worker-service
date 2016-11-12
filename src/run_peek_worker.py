@@ -13,6 +13,8 @@
 """
 import signal
 
+from celery.signals import eventlet_pool_preshutdown, worker_shutdown
+
 from rapui import LoggingSetup
 
 LoggingSetup.setup()
@@ -100,6 +102,7 @@ def main():
     d.addErrback(printFailure)
 
     # Run the reactor in a thread
+    reactor.callLater(0, logger.info, "Reactor started")
     Thread(target=reactor.run, args=(False,)).start()
 
     # Load all Papps
@@ -108,24 +111,14 @@ def main():
     PeekWorkerApp.start()
 
 
-def shutdownReactor(signum, frame):
+@worker_shutdown.connect
+def thing(sender, signal):
     # SIGCLD is the one sent when pycharm restarts
-    logger.info("Received SIG signal %s, shutting down twisted reactor", signum)
+    logger.info("Reactor stopping, Celery pool is shutting down.")
 
     # Tell the reactor to stop
     reactor.callFromThread(reactor.stop)
-    return signum
 
-
-# signal.signal(signal.SIGCLD, shutdownReactor)
-
-# Register all signals
-for i in [x for x in dir(signal) if x.startswith("SIG")]:
-    try:
-        signum = getattr(signal, i)
-        signal.signal(signum, shutdownReactor)
-    except ValueError as m:
-        print "Skipping %s" % i
 
 if __name__ == '__main__':
     main()
