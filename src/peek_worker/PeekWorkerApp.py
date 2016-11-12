@@ -17,11 +17,14 @@ def configureCeleryApp(app, pappIncludes=[]):
         BROKER_URL='amqp://',
         CELERY_RESULT_BACKEND='redis://localhost',
 
+        # Leave the logging to us
+        CELERYD_HIJACK_ROOT_LOGGER=False,
+
         CELERY_TASK_RESULT_EXPIRES=3600,
         CELERY_TASK_SERIALIZER='json',
         CELERY_ACCEPT_CONTENT=['json'],  # Ignore other content
         CELERY_RESULT_SERIALIZER='json',
-        CELERY_ENABLE_UTC=True,
+        CELERY_ENABLE_UTC=True
     )
 
 
@@ -36,4 +39,3 @@ def start(*args):
     )
 
     peekWorkerApp.worker_main()
-

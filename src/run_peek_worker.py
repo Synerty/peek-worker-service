@@ -11,23 +11,14 @@
  *  Synerty Pty Ltd
  *
 """
-import signal
+import celery
+from celery.signals import worker_shutdown
 
-import __pypy__
-
-import thread
-
-import sys
-
-import os
-from celery.signals import eventlet_pool_preshutdown, worker_shutdown
-
-from peek_platform.sw_install.PeekSwInstallManagerBase import PeekSwInstallManagerBase
 from rapui import LoggingSetup
 
 LoggingSetup.setup()
 
-from twisted.internet import threads, reactor
+from twisted.internet import reactor
 
 from rapui import RapuiConfig
 from rapui.DeferUtil import printFailure
@@ -56,6 +47,7 @@ from psycopg2cffi import compat
 
 compat.register()
 
+
 # Allow the twisted reactor thread to restart the worker process
 
 
@@ -67,17 +59,24 @@ def platformSetup():
     from peek_worker.sw_install.PappSwInstallManager import pappSwInstallManager
     PeekPlatformConfig.pappSwInstallManager = pappSwInstallManager
 
+    # Tell the platform classes about our instance of the PeekSwInstallManager
+    from peek_worker.sw_install.PeekSwInstallManager import peekSwInstallManager
+    PeekPlatformConfig.peekSwInstallManager = peekSwInstallManager
+
     # The config depends on the componentName, order is important
     from peek_worker.PeekWorkerConfig import peekWorkerConfig
     PeekPlatformConfig.config = peekWorkerConfig
-
-    # Set default logging level
-    logging.root.setLevel(peekWorkerConfig.loggingLevel)
 
     # Initialise the rapui Directory object
     DirSettings.defaultDirChmod = peekWorkerConfig.DEFAULT_DIR_CHMOD
     DirSettings.tmpDirPath = peekWorkerConfig.tmpPath
 
+@celery.signals.after_setup_logger.connect
+def configureLogging(*args, **kwargs):
+
+    # Set default logging level
+    from peek_worker.PeekWorkerConfig import peekWorkerConfig
+    logging.root.setLevel(peekWorkerConfig.loggingLevel)
 
 def twistedMain():
     # defer.setDebugging(True)
@@ -128,10 +127,7 @@ def celeryMain():
 
 @worker_shutdown.connect
 def twistedShutdown(sender, signal):
-    # SIGCLD is the one sent when pycharm restarts
     logger.info("Reactor stopping, Celery pool is shutting down.")
-
-    # Tell the reactor to stop
     reactor.callFromThread(reactor.stop)
 
 
