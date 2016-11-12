@@ -11,11 +11,13 @@
  *  Synerty Pty Ltd
  *
 """
+import signal
+
 from rapui import LoggingSetup
 
 LoggingSetup.setup()
 
-from twisted.internet import reactor
+from twisted.internet import threads, reactor
 
 from rapui import RapuiConfig
 from rapui.DeferUtil import printFailure
@@ -24,6 +26,7 @@ from rapui.util.Directory import DirSettings
 RapuiConfig.enabledJsRequire = False
 
 import logging
+from threading import Thread
 
 # EXAMPLE LOGGING CONFIG
 # Hide messages from vortex
@@ -40,7 +43,9 @@ reactor.suggestThreadPoolSize(10)
 
 # Enable this for PYPY
 from psycopg2cffi import compat
+
 compat.register()
+
 
 def main():
     # defer.setDebugging(True)
@@ -82,18 +87,45 @@ def main():
     # sent from the peekSwUpdater will be queued and sent when it does connect.
     d.addBoth(lambda _: peekSwVersionPollHandler.start())
 
-
     # Load all Papps
+    logger.info("Loading all Peek Apps")
     from peek_worker.papp.PappWorkerLoader import pappWorkerLoader
-    d.addBoth(lambda _ : pappWorkerLoader.loadAllPapps())
+    d.addBoth(lambda _: pappWorkerLoader.loadAllPapps())
+
+    # Log that the reactor has started
+    d.addCallback(lambda _:
+                  logger.info('Peek Worker is running, version=%s',
+                              peekWorkerConfig.platformVersion))
 
     d.addErrback(printFailure)
 
-    # Init the realtime handler
+    # Run the reactor in a thread
+    Thread(target=reactor.run, args=(False,)).start()
 
-    logger.info('Peek Worker is running, version=%s', peekWorkerConfig.platformVersion)
-    reactor.run()
+    # Load all Papps
+    logger.info("Starting Celery")
+    from peek_worker import PeekWorkerApp
+    PeekWorkerApp.start()
 
+
+def shutdownReactor(signum, frame):
+    # SIGCLD is the one sent when pycharm restarts
+    logger.info("Received SIG signal %s, shutting down twisted reactor", signum)
+
+    # Tell the reactor to stop
+    reactor.callFromThread(reactor.stop)
+    return signum
+
+
+# signal.signal(signal.SIGCLD, shutdownReactor)
+
+# Register all signals
+for i in [x for x in dir(signal) if x.startswith("SIG")]:
+    try:
+        signum = getattr(signal, i)
+        signal.signal(signum, shutdownReactor)
+    except ValueError as m:
+        print "Skipping %s" % i
 
 if __name__ == '__main__':
     main()

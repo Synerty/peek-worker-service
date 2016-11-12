@@ -6,7 +6,7 @@ from _collections import defaultdict
 import os
 
 from peek_worker.PeekWorkerConfig import peekWorkerConfig
-from peek_worker.papp.WorkerPlatformApi import WorkerPlatformApi
+from peek_worker.papp.PeekWorkerApi import PeekWorkerApi
 from peek_platform.papp.PappLoaderBase import PappLoaderBase
 from rapui.site.ResourceUtil import removeResourcePaths, registeredResourcePaths
 from rapui.vortex.PayloadIO import PayloadIO
@@ -16,7 +16,21 @@ from rapui.vortex.Tuple import removeTuplesForTupleNames, \
 logger = logging.getLogger(__name__)
 
 
-class PappWorkerLoader(PappLoaderBase):
+class _CeleryLoaderMixin:
+    ''' Celery Loader Mixin
+
+    Separate some logic out into this class
+
+    '''
+    @property
+    def celeryAppIncludes(self):
+        includes = []
+        for pappWorkerMain in self._loadedPapps.values():
+            includes.extend(pappWorkerMain.celeryAppIncludes)
+        return includes
+
+
+class PappWorkerLoader(PappLoaderBase, _CeleryLoaderMixin):
     _instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -60,9 +74,11 @@ class PappWorkerLoader(PappLoaderBase):
         tupleNamesBefore = set(registeredTupleNames())
 
         # Everyone gets their own instance of the papp API
-        workerPlatformApi = WorkerPlatformApi()
+        workerPlatformApi = PeekWorkerApi()
 
-        srcDir = os.path.join(self._pappPath, pappDirName)
+        srcDir = os.path.join(self._pappPath, pappDirName, 'pypy')
+        sys.path.append(srcDir)
+
         modPath = os.path.join(srcDir, pappName, "PappWorkerMain.py")
         if not os.path.exists(modPath) and os.path.exists(modPath + u"c"):  # .pyc
             PappWorkerMainMod = imp.load_compiled('%s.PappWorkerMain' % pappName,
@@ -73,9 +89,15 @@ class PappWorkerLoader(PappLoaderBase):
 
         peekClient = PappWorkerMainMod.PappWorkerMain(workerPlatformApi)
 
-        sys.path.append(srcDir)
 
         self._loadedPapps[pappName] = peekClient
+
+        # Configure the celery app in the worker
+        # This is not the worker that will be started, it allows the worker to queue tasks
+
+        from peek_worker.PeekWorkerApp import configureCeleryApp
+        configureCeleryApp(peekClient.celeryApp)
+
         peekClient.start()
         sys.path.pop()
 
