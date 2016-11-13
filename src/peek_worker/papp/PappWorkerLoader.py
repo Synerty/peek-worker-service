@@ -1,14 +1,12 @@
-import imp
 import logging
-import sys
 from _collections import defaultdict
 
 import os
 
+from peek_platform.papp.PappLoaderBase import PappLoaderBase
 from peek_worker.PeekWorkerConfig import peekWorkerConfig
 from peek_worker.papp.PeekWorkerApi import PeekWorkerApi
-from peek_platform.papp.PappLoaderBase import PappLoaderBase
-from rapui.site.ResourceUtil import removeResourcePaths, registeredResourcePaths
+from rapui.site.ResourceUtil import registeredResourcePaths
 from rapui.vortex.PayloadIO import PayloadIO
 from rapui.vortex.Tuple import removeTuplesForTupleNames, \
     registeredTupleNames, tupleForTupleName
@@ -77,30 +75,34 @@ class PappWorkerLoader(PappLoaderBase, _CeleryLoaderMixin):
         # Everyone gets their own instance of the papp API
         workerPlatformApi = PeekWorkerApi()
 
-        srcDir = os.path.join(self._pappPath, pappDirName, 'pypy')
-        sys.path.append(srcDir)
+        srcDir = os.path.join(self._pappPath, pappDirName, 'cpython')
+        # sys.path.append(srcDir)
 
-        modPath = os.path.join(srcDir, pappName, "PappWorkerMain.py")
-        if not os.path.exists(modPath) and os.path.exists(modPath + u"c"):  # .pyc
-            PappWorkerMainMod = imp.load_compiled(
-                '%s.PappWorkerMain' % pappName, modPath + u'c')
-        else:
-            PappWorkerMainMod = imp.load_source(
-                '%s.PappWorkerMain' % pappName, modPath)
+        # logger.info("Loading Peek App from %s", srcDir)
+        #
+        # modPath = os.path.join(srcDir, pappName, "PappWorkerMain.py")
+        # if not os.path.exists(modPath) and os.path.exists(modPath + u"c"):  # .pyc
+        #     PappWorkerMainMod = imp.load_compiled(
+        #         '%s.PappWorkerMain' % pappName, modPath + u'c')
+        # else:
+        #     PappWorkerMainMod = imp.load_source(
+        #         '%s.PappWorkerMain' % pappName, modPath)
 
-        peekClient = PappWorkerMainMod.PappWorkerMain(workerPlatformApi)
+        from papp_noop import PappWorkerMain as PappWorkerMainMod
+
+        pappMain = PappWorkerMainMod.PappWorkerMain(workerPlatformApi)
 
 
-        self._loadedPapps[pappName] = peekClient
+        self._loadedPapps[pappName] = pappMain
 
         # Configure the celery app in the worker
         # This is not the worker that will be started, it allows the worker to queue tasks
 
-        from peek_worker.PeekWorkerApp import configureCeleryApp
-        configureCeleryApp(peekClient.celeryApp)
+        from peek_platform.CeleryApp import configureCeleryApp
+        configureCeleryApp(pappMain.celeryApp)
 
-        peekClient.start()
-        sys.path.pop()
+        pappMain.start()
+        # sys.path.pop()
 
         # Make note of the final registrations for this papp
         if set(PayloadIO().endpoints) - endpointInstancesBefore:

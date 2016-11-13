@@ -45,9 +45,14 @@ logger = logging.getLogger(__name__)
 reactor.suggestThreadPoolSize(10)
 
 # Enable this for PYPY
-from psycopg2cffi import compat
+try:
+    # CPython (Normal)
+    import psycopg2
+except:
+    # PYPY
+    from psycopg2cffi import compat
 
-compat.register()
+    compat.register()
 
 
 # Allow the twisted reactor thread to restart the worker process
@@ -65,6 +70,10 @@ def platformSetup():
     from peek_worker.sw_install.PeekSwInstallManager import peekSwInstallManager
     PeekPlatformConfig.peekSwInstallManager = peekSwInstallManager
 
+    # Tell the platform classes about our instance of the PeekLoaderBase
+    from peek_worker.papp.PappWorkerLoader import pappWorkerLoader
+    PeekPlatformConfig.pappLoader = pappWorkerLoader
+
     # The config depends on the componentName, order is important
     from peek_worker.PeekWorkerConfig import peekWorkerConfig
     PeekPlatformConfig.config = peekWorkerConfig
@@ -73,16 +82,22 @@ def platformSetup():
     DirSettings.defaultDirChmod = peekWorkerConfig.DEFAULT_DIR_CHMOD
     DirSettings.tmpDirPath = peekWorkerConfig.tmpPath
 
+
 @celery.signals.after_setup_logger.connect
 def configureLogging(*args, **kwargs):
-
     # Set default logging level
     from peek_worker.PeekWorkerConfig import peekWorkerConfig
     logging.root.setLevel(peekWorkerConfig.loggingLevel)
 
+    if peekWorkerConfig.loggingLevel != "DEBUG":
+        for name in ("celery.worker.strategy", "celery.app.trace", "celery.worker.job"):
+            logging.getLogger(name).setLevel(logging.WARNING)
+
+
 # Create the startup mutex, twisted has to load the papps before celery starts.
 twistedPappsLoadedMutex = threading.Lock()
 assert twistedPappsLoadedMutex.acquire()
+
 
 def twistedMain():
     # defer.setDebugging(True)
@@ -110,6 +125,9 @@ def twistedMain():
     from peek_worker.papp.PappWorkerLoader import pappWorkerLoader
     d.addBoth(lambda _: pappWorkerLoader.loadAllPapps())
 
+    # Log Exception, convert the errback to callback
+    d.addErrback(lambda f: logger.exception(f.value))
+
     # Log that the reactor has started
     from peek_worker.PeekWorkerConfig import peekWorkerConfig
     d.addCallback(lambda _:
@@ -130,8 +148,8 @@ def twistedMain():
 def celeryMain():
     # Load all Papps
     logger.info("Starting Celery")
-    from peek_worker import PeekWorkerApp
-    PeekWorkerApp.start()
+    from peek_platform import CeleryApp
+    CeleryApp.start()
 
 
 @worker_shutdown.connect
@@ -144,7 +162,8 @@ if __name__ == '__main__':
     platformSetup()
 
     # Initialise and run all the twisted stuff in another thread.
-    Thread(target=twistedMain).start()
+    twistedMainLoopThread = Thread(target=twistedMain)
+    twistedMainLoopThread.start()
 
     # Block until twisted has released it's lock
     twistedPappsLoadedMutex.acquire()
@@ -152,3 +171,6 @@ if __name__ == '__main__':
     # Start the celery blocking main thread
     celeryMain()
     logger.info("Celery has shutdown")
+
+    # Wait for twisted to stop
+    twistedMainLoopThread.join()
