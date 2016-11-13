@@ -1,7 +1,9 @@
 import logging
 from _collections import defaultdict
 
+import imp
 import os
+import sys
 
 from peek_platform.papp.PappLoaderBase import PappLoaderBase
 from peek_worker.PeekWorkerConfig import peekWorkerConfig
@@ -76,19 +78,17 @@ class PappWorkerLoader(PappLoaderBase, _CeleryLoaderMixin):
         workerPlatformApi = PeekWorkerApi()
 
         srcDir = os.path.join(self._pappPath, pappDirName, 'cpython')
-        # sys.path.append(srcDir)
+        sys.path.append(srcDir)
 
-        # logger.info("Loading Peek App from %s", srcDir)
-        #
-        # modPath = os.path.join(srcDir, pappName, "PappWorkerMain.py")
-        # if not os.path.exists(modPath) and os.path.exists(modPath + u"c"):  # .pyc
-        #     PappWorkerMainMod = imp.load_compiled(
-        #         '%s.PappWorkerMain' % pappName, modPath + u'c')
-        # else:
-        #     PappWorkerMainMod = imp.load_source(
-        #         '%s.PappWorkerMain' % pappName, modPath)
+        logger.info("Loading Peek App from %s", srcDir)
 
-        from papp_noop import PappWorkerMain as PappWorkerMainMod
+        modPath = os.path.join(srcDir, pappName, "PappWorkerMain.py")
+        if not os.path.exists(modPath) and os.path.exists(modPath + u"c"):  # .pyc
+            PappWorkerMainMod = imp.load_compiled(
+                '%s.PappWorkerMain' % pappName, modPath + u'c')
+        else:
+            PappWorkerMainMod = imp.load_source(
+                '%s.PappWorkerMain' % pappName, modPath)
 
         pappMain = PappWorkerMainMod.PappWorkerMain(workerPlatformApi)
 
@@ -102,7 +102,7 @@ class PappWorkerLoader(PappLoaderBase, _CeleryLoaderMixin):
         configureCeleryApp(pappMain.celeryApp)
 
         pappMain.start()
-        # sys.path.pop()
+        sys.path.pop()
 
         # Make note of the final registrations for this papp
         if set(PayloadIO().endpoints) - endpointInstancesBefore:
