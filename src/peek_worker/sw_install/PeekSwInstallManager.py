@@ -13,6 +13,11 @@ logger = logging.getLogger(__name__)
 
 
 class PeekSwInstallManager(PeekSwInstallManagerBase):
+
+    def __init__(self):
+        PeekSwInstallManagerBase.__init__(self)
+        self._restarting  = False
+
     def _stopCode(self):
         pappWorkerLoader.unloadAllPapps()
 
@@ -26,14 +31,19 @@ class PeekSwInstallManager(PeekSwInstallManagerBase):
         # When we receive this signal, the processes have already been instructed
         # to shutdown
 
-        run_peek_worker.peekWorkerRestarting = True
+        self._restarting = True
 
         from peek_platform.CeleryApp import celeryApp
         logger.info("Shutting down celery workers")
         celeryApp.control.broadcast('shutdown')
 
-        # Give it time to shutdown
-        sleep(2)
+
+    @property
+    def restartTriggered(self):
+        return self._restarting
+
+    def realyRestartProcess(self):
+        PeekSwInstallManagerBase.restartProcess(self)
 
 
 peekSwInstallManager = PeekSwInstallManager()

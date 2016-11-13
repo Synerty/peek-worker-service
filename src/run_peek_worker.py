@@ -94,11 +94,6 @@ def configureLogging(*args, **kwargs):
             logging.getLogger(name).setLevel(logging.WARNING)
 
 
-# Create the startup mutex, twisted has to load the papps before celery starts.
-twistedPappsLoadedMutex = threading.Lock()
-assert twistedPappsLoadedMutex.acquire()
-
-
 def twistedMain():
     # defer.setDebugging(True)
     # sys.argv.remove(DEBUG_ARG)
@@ -152,14 +147,15 @@ def celeryMain():
     CeleryApp.start()
 
 
-# @worker_shutdown.connect
-# def twistedShutdown(*args, **kwargs):
-#     logger.info("Reactor stopping, Celery pool is shutting down.")
-#     reactor.callFromThread(reactor.stop)
+# Create the startup mutex, twisted has to load the papps before celery starts.
+twistedPappsLoadedMutex = threading.Lock()
+assert twistedPappsLoadedMutex.acquire()
 
-# Set from peek_worker.sw_install.PeekSwInstallManager when the process is restarting
-# Otherwise the process is just exiting
-peekWorkerRestarting = False
+
+def setPeekWorkerRestarting():
+    global peekWorkerRestarting
+    peekWorkerRestarting = True
+
 
 if __name__ == '__main__':
     platformSetup()
@@ -175,11 +171,19 @@ if __name__ == '__main__':
     celeryMain()
     logger.info("Celery has shutdown")
 
-    if not peekWorkerRestarting:
+    from peek_worker.sw_install.PeekSwInstallManager import peekSwInstallManager
+
+    if peekSwInstallManager.restartTriggered:
+
+        logger.info("Restarting Peek Worker")
+        peekSwInstallManager.realyRestartProcess()
+
+    else:
         # Tell twisted to stop
+        logger.info("Shutting down twisted reactor.")
         reactor.callFromThread(reactor.stop)
 
     # Wait for twisted to stop
     twistedMainLoopThread.join()
 
-    logger.info("Reactor shudown complete.")
+    logger.info("Reactor shutdown complete.")
