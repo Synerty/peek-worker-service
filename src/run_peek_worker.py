@@ -157,6 +157,10 @@ def celeryMain():
 #     logger.info("Reactor stopping, Celery pool is shutting down.")
 #     reactor.callFromThread(reactor.stop)
 
+# Set from peek_worker.sw_install.PeekSwInstallManager when the process is restarting
+# Otherwise the process is just exiting
+peekWorkerRestarting = False
+
 if __name__ == '__main__':
     platformSetup()
 
@@ -171,8 +175,11 @@ if __name__ == '__main__':
     celeryMain()
     logger.info("Celery has shutdown")
 
-    reactor.callFromThread(reactor.stop)
+    if not peekWorkerRestarting:
+        # Tell twisted to stop
+        reactor.callFromThread(reactor.stop)
 
     # Wait for twisted to stop
     twistedMainLoopThread.join()
+
     logger.info("Reactor shudown complete.")

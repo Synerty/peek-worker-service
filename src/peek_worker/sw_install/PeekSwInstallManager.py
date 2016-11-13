@@ -3,6 +3,7 @@ from time import sleep
 
 from celery.signals import worker_shutdown
 
+import run_peek_worker
 from peek_platform.sw_install.PeekSwInstallManagerBase import PeekSwInstallManagerBase
 from peek_worker.papp.PappWorkerLoader import pappWorkerLoader
 
@@ -24,10 +25,8 @@ class PeekSwInstallManager(PeekSwInstallManagerBase):
     def restartProcess(self):
         # When we receive this signal, the processes have already been instructed
         # to shutdown
-        @worker_shutdown.connect
-        def twistedShutdown(sender, signal):
-            logger.info("Restarting process")
-            PeekSwInstallManagerBase.restartProcess(self)
+
+        run_peek_worker.peekWorkerRestarting = True
 
         from peek_platform.CeleryApp import celeryApp
         logger.info("Shutting down celery workers")
