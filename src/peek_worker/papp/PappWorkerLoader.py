@@ -57,7 +57,7 @@ class PappWorkerLoader(PappLoaderBase, _CeleryLoaderMixin):
 
         self._unloadPappPackage(pappName, oldLoadedPapp)
 
-    def loadPapp(self, pappName):
+    def _loadPappThrows(self, pappName):
         self.unloadPapp(pappName)
 
         pappDirName = peekWorkerConfig.pappDir(pappName)

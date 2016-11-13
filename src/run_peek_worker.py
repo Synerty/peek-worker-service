@@ -152,11 +152,10 @@ def celeryMain():
     CeleryApp.start()
 
 
-@worker_shutdown.connect
-def twistedShutdown(sender, signal):
-    logger.info("Reactor stopping, Celery pool is shutting down.")
-    reactor.callFromThread(reactor.stop)
-
+# @worker_shutdown.connect
+# def twistedShutdown(*args, **kwargs):
+#     logger.info("Reactor stopping, Celery pool is shutting down.")
+#     reactor.callFromThread(reactor.stop)
 
 if __name__ == '__main__':
     platformSetup()
@@ -172,5 +171,8 @@ if __name__ == '__main__':
     celeryMain()
     logger.info("Celery has shutdown")
 
+    reactor.callFromThread(reactor.stop)
+
     # Wait for twisted to stop
     twistedMainLoopThread.join()
+    logger.info("Reactor shudown complete.")
