@@ -26,7 +26,7 @@ class _CeleryLoaderMixin:
     @property
     def celeryAppIncludes(self):
         includes = []
-        for pappWorkerMain in self._loadedPapps.values():
+        for pappWorkerMain in list(self._loadedPapps.values()):
             includes.extend(pappWorkerMain.celeryAppIncludes)
         return includes
 
@@ -83,9 +83,9 @@ class PappWorkerLoader(PappLoaderBase, _CeleryLoaderMixin):
         logger.info("Loading Peek App from %s", srcDir)
 
         modPath = os.path.join(srcDir, pappName, "PappWorkerMain.py")
-        if not os.path.exists(modPath) and os.path.exists(modPath + u"c"):  # .pyc
+        if not os.path.exists(modPath) and os.path.exists(modPath + "c"):  # .pyc
             PappWorkerMainMod = imp.load_compiled(
-                '%s.PappWorkerMain' % pappName, modPath + u'c')
+                '%s.PappWorkerMain' % pappName, modPath + 'c')
         else:
             PappWorkerMainMod = imp.load_source(
                 '%s.PappWorkerMain' % pappName, modPath)
