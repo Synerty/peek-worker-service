@@ -36,7 +36,7 @@ class PappWorkerLoader(PappLoaderBase, _CeleryLoaderMixin):
 
     def __new__(cls, *args, **kwargs):
         assert cls._instance is None, "PappWorkerLoader is a singleton, don't construct it"
-        cls._instance = cls()
+        cls._instance = PappLoaderBase.__new__(cls)
         return cls._instance
 
     def __init__(self):
