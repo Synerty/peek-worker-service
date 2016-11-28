@@ -1,16 +1,15 @@
-import logging
-from _collections import defaultdict
-
 import imp
+import logging
 import os
 import sys
+from _collections import defaultdict
 
 from peek_platform.papp.PappLoaderBase import PappLoaderBase
 from peek_worker.PeekWorkerConfig import peekWorkerConfig
 from peek_worker.papp.PeekWorkerApi import PeekWorkerApi
-from rapui.site.ResourceUtil import registeredResourcePaths
-from rapui.vortex.PayloadIO import PayloadIO
-from rapui.vortex.Tuple import removeTuplesForTupleNames, \
+from txhttputil import PayloadIO
+from txhttputil import registeredResourcePaths
+from txhttputil import removeTuplesForTupleNames, \
     registeredTupleNames, tupleForTupleName
 
 logger = logging.getLogger(__name__)

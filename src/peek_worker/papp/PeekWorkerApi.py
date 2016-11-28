@@ -1,6 +1,6 @@
 
 
-from papp_base.PeekWorkerApiBase import PeekWorkerApiBase
+from papp_base.worker.PeekWorkerApiBase import PeekWorkerApiBase
 
 
 class PeekWorkerApi(PeekWorkerApiBase):
