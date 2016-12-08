@@ -4,13 +4,14 @@ import os
 import sys
 from _collections import defaultdict
 
-from peek_platform.papp.PappLoaderBase import PappLoaderBase
-from peek_worker.PeekWorkerConfig import peekWorkerConfig
-from peek_worker.papp.PeekWorkerApi import PeekWorkerApi
 from txhttputil import PayloadIO
 from txhttputil import registeredResourcePaths
 from txhttputil import removeTuplesForTupleNames, \
     registeredTupleNames, tupleForTupleName
+
+from peek_platform.papp import PappLoaderABC
+from peek_worker.PeekWorkerConfig import peekWorkerConfig
+from peek_worker.papp.PeekWorkerApi import PeekWorkerApi
 
 logger = logging.getLogger(__name__)
 
@@ -30,16 +31,16 @@ class _CeleryLoaderMixin:
         return includes
 
 
-class PappWorkerLoader(PappLoaderBase, _CeleryLoaderMixin):
+class PappWorkerLoader(PappLoaderABC, _CeleryLoaderMixin):
     _instance = None
 
     def __new__(cls, *args, **kwargs):
         assert cls._instance is None, "PappWorkerLoader is a singleton, don't construct it"
-        cls._instance = PappLoaderBase.__new__(cls)
+        cls._instance = PappLoaderABC.__new__(cls)
         return cls._instance
 
     def __init__(self):
-        PappLoaderBase.__init__(self)
+        PappLoaderABC.__init__(self)
 
         from peek_worker.PeekWorkerConfig import peekWorkerConfig
         self._pappPath = peekWorkerConfig.pappSoftwarePath
@@ -97,7 +98,7 @@ class PappWorkerLoader(PappLoaderBase, _CeleryLoaderMixin):
         # Configure the celery app in the worker
         # This is not the worker that will be started, it allows the worker to queue tasks
 
-        from peek_platform.CeleryApp import configureCeleryApp
+        from peek_platform import configureCeleryApp
         configureCeleryApp(pappMain.celeryApp)
 
         pappMain.start()

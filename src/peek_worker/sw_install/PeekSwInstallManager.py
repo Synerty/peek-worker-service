@@ -1,10 +1,6 @@
 import logging
-from time import sleep
 
-from celery.signals import worker_shutdown
-
-import run_peek_worker
-from peek_platform.sw_install.PeekSwInstallManagerBase import PeekSwInstallManagerBase
+from peek_platform import PeekSwInstallManagerBase
 from peek_worker.papp.PappWorkerLoader import pappWorkerLoader
 
 __author__ = 'synerty'
@@ -33,7 +29,7 @@ class PeekSwInstallManager(PeekSwInstallManagerBase):
 
         self._restarting = True
 
-        from peek_platform.CeleryApp import celeryApp
+        from peek_platform import celeryApp
         logger.info("Shutting down celery workers")
         celeryApp.control.broadcast('shutdown')
 

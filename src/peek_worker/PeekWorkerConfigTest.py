@@ -1,8 +1,7 @@
 import logging
+import os
 import shutil
 import unittest
-
-import os
 
 import peek_platform
 

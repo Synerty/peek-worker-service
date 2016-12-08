@@ -14,12 +14,12 @@
 '''
 import logging
 
-from peek_platform.file_config.PeekFileConfigBase import PeekFileConfigBase
-from peek_platform.file_config.PeekFileConfigPeekServerClientMixin import \
+from peek_platform import PeekFileConfigBase
+from peek_platform import \
     PeekFileConfigPeekServerClientMixin
-from peek_platform.file_config.PeekFileConfigPlatformMixin import \
+from peek_platform import \
     PeekFileConfigPlatformMixin
-from peek_platform.file_config.PeekFileConfigSqlAlchemyMixin import \
+from peek_platform import \
     PeekFileConfigSqlAlchemyMixin
 
 logger = logging.getLogger(__name__)
