@@ -11,7 +11,7 @@ from txhttputil import removeTuplesForTupleNames, \
 
 from peek_platform.papp import PappLoaderABC
 from peek_worker.PeekWorkerConfig import peekWorkerConfig
-from peek_worker.papp.PeekWorkerApi import PeekWorkerApi
+from peek_worker.papp.PeekWorkerPlatformHook import PeekWorkerPlatformHook
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +75,7 @@ class PappWorkerLoader(PappLoaderABC, _CeleryLoaderMixin):
         tupleNamesBefore = set(registeredTupleNames())
 
         # Everyone gets their own instance of the papp API
-        workerPlatformApi = PeekWorkerApi()
+        workerPlatformApi = PeekWorkerPlatformHook()
 
         srcDir = os.path.join(self._pappPath, pappDirName, 'cpython')
         sys.path.append(srcDir)
@@ -98,7 +98,7 @@ class PappWorkerLoader(PappLoaderABC, _CeleryLoaderMixin):
         # Configure the celery app in the worker
         # This is not the worker that will be started, it allows the worker to queue tasks
 
-        from peek_platform import configureCeleryApp
+        from peek_platform.CeleryApp import configureCeleryApp
         configureCeleryApp(pappMain.celeryApp)
 
         pappMain.start()
