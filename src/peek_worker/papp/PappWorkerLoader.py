@@ -62,7 +62,7 @@ class PappWorkerLoader(PappLoaderABC, _CeleryLoaderMixin):
     def _loadPappThrows(self, pappName):
         self.unloadPapp(pappName)
 
-        pappDirName = peekWorkerConfig.pappDir(pappName)
+        pappDirName = peekWorkerConfig.pappDevelDir(pappName)
 
         if not pappDirName:
             logger.warning("Papp dir name for %s is missing, loading skipped",
@@ -82,13 +82,13 @@ class PappWorkerLoader(PappLoaderABC, _CeleryLoaderMixin):
 
         logger.info("Loading Peek App from %s", srcDir)
 
-        modPath = os.path.join(srcDir, pappName, "PappWorkerMain.py")
+        modPath = os.path.join(srcDir, pappName, "PappWorkerEntryHookyHook.py")
         if not os.path.exists(modPath) and os.path.exists(modPath + "c"):  # .pyc
             PappWorkerMainMod = imp.load_compiled(
-                '%s.PappWorkerMain' % pappName, modPath + 'c')
+                '%s.PappWorkerEntryHook' % pappName, modPath + 'c')
         else:
             PappWorkerMainMod = imp.load_source(
-                '%s.PappWorkerMain' % pappName, modPath)
+                '%s.PappWorkerEntryHook' % pappName, modPath)
 
         pappMain = PappWorkerMainMod.PappWorkerMain(workerPlatformApi)
 
