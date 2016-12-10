@@ -1,37 +1,30 @@
-import imp
 import logging
-import os
-import sys
-from _collections import defaultdict
+from typing import Type
 
-from txhttputil import PayloadIO
-from txhttputil import registeredResourcePaths
-from txhttputil import removeTuplesForTupleNames, \
-    registeredTupleNames, tupleForTupleName
-
+from papp_base.PappCommonEntryHookABC import PappCommonEntryHookABC
+from papp_base.worker.PappWorkerEntryHookABC import PappWorkerEntryHookABC
 from peek_platform.papp import PappLoaderABC
-from peek_worker.PeekWorkerConfig import peekWorkerConfig
 from peek_worker.papp.PeekWorkerPlatformHook import PeekWorkerPlatformHook
 
 logger = logging.getLogger(__name__)
 
 
-class _CeleryLoaderMixin:
-    ''' Celery Loader Mixin
+# class _CeleryLoaderMixin:
+#     ''' Celery Loader Mixin
+#
+#     Separate some logic out into this class
+#
+#     '''
+#
+#     @property
+#     def celeryAppIncludes(self):
+#         includes = []
+#         for pappWorkerMain in list(self._loadedPapps.values()):
+#             includes.extend(pappWorkerMain.celeryAppIncludes)
+#         return includes
 
-    Separate some logic out into this class
 
-    '''
-
-    @property
-    def celeryAppIncludes(self):
-        includes = []
-        for pappWorkerMain in list(self._loadedPapps.values()):
-            includes.extend(pappWorkerMain.celeryAppIncludes)
-        return includes
-
-
-class PappWorkerLoader(PappLoaderABC, _CeleryLoaderMixin):
+class PappWorkerLoader(PappLoaderABC):#, _CeleryLoaderMixin):
     _instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -39,100 +32,41 @@ class PappWorkerLoader(PappLoaderABC, _CeleryLoaderMixin):
         cls._instance = PappLoaderABC.__new__(cls)
         return cls._instance
 
-    def __init__(self):
-        PappLoaderABC.__init__(self)
+    @property
+    def _entryHookFuncName(self) -> str:
+        return "peekWorkerEntryHook"
 
-        from peek_worker.PeekWorkerConfig import peekWorkerConfig
-        self._pappPath = peekWorkerConfig.pappSoftwarePath
+    @property
+    def _entryHookClassType(self):
+        return PappWorkerEntryHookABC
 
-        self._rapuiTupleNamesByPappName = defaultdict(list)
+    @property
+    def _platformServiceNames(self) -> [str]:
+        return ["worker"]
 
-    def unloadPapp(self, pappName):
-        oldLoadedPapp = self._loadedPapps.get(pappName)
-
-        if not oldLoadedPapp:
-            return
-
-        # Remove the registered tuples
-        removeTuplesForTupleNames(self._rapuiTupleNamesByPappName[pappName])
-        del self._rapuiTupleNamesByPappName[pappName]
-
-        self._unloadPappPackage(pappName, oldLoadedPapp)
-
-    def _loadPappThrows(self, pappName):
-        self.unloadPapp(pappName)
-
-        pappDirName = peekWorkerConfig.pappDevelDir(pappName)
-
-        if not pappDirName:
-            logger.warning("Papp dir name for %s is missing, loading skipped",
-                           pappName)
-            return
-
-        # Make note of the initial registrations for this papp
-        endpointInstancesBefore = set(PayloadIO().endpoints)
-        resourcePathsBefore = set(registeredResourcePaths())
-        tupleNamesBefore = set(registeredTupleNames())
+    def _loadPappThrows(self, pappName: str, EntryHookClass: Type[PappCommonEntryHookABC],
+                        pappRootDir: str) -> None:
 
         # Everyone gets their own instance of the papp API
-        workerPlatformApi = PeekWorkerPlatformHook()
+        platformApi = PeekWorkerPlatformHook()
 
-        srcDir = os.path.join(self._pappPath, pappDirName, 'cpython')
-        sys.path.append(srcDir)
+        pappMain = EntryHookClass(pappName=pappName,
+                                  pappRootDir=pappRootDir,
+                                  platform=platformApi)
 
-        logger.info("Loading Peek App from %s", srcDir)
-
-        modPath = os.path.join(srcDir, pappName, "PappWorkerEntryHookyHook.py")
-        if not os.path.exists(modPath) and os.path.exists(modPath + "c"):  # .pyc
-            PappWorkerMainMod = imp.load_compiled(
-                '%s.PappWorkerEntryHook' % pappName, modPath + 'c')
-        else:
-            PappWorkerMainMod = imp.load_source(
-                '%s.PappWorkerEntryHook' % pappName, modPath)
-
-        pappMain = PappWorkerMainMod.PappWorkerMain(workerPlatformApi)
-
-
-        self._loadedPapps[pappName] = pappMain
+        # Load the papp
+        pappMain.load()
 
         # Configure the celery app in the worker
         # This is not the worker that will be started, it allows the worker to queue tasks
-
         from peek_platform.CeleryApp import configureCeleryApp
         configureCeleryApp(pappMain.celeryApp)
 
+        # Start the Papp
         pappMain.start()
-        sys.path.pop()
 
-        # Make note of the final registrations for this papp
-        if set(PayloadIO().endpoints) - endpointInstancesBefore:
-            raise Exception("Workers should not be registering endpoints")
 
-        if set(registeredResourcePaths()) - resourcePathsBefore:
-            raise Exception("Workers should not be registering http resources")
-
-        self._rapuiTupleNamesByPappName[pappName] = list(
-            set(registeredTupleNames()) - tupleNamesBefore)
-
-        self.sanityCheckWorkerPapp(pappName)
-
-    def sanityCheckWorkerPapp(self, pappName):
-        ''' Sanity Check Papp
-
-        This method ensures that all the things registed for this papp are
-        prefixed by it's pappName, EG papp_noop
-        '''
-
-        # all tuple names must start with their pappName
-        for tupleName in self._rapuiTupleNamesByPappName[pappName]:
-            TupleCls = tupleForTupleName(tupleName)
-            if not tupleName.startswith(pappName):
-                raise Exception("Tuple name does not start with '%s', %s (%s)"
-                                % (pappName, tupleName, TupleCls.__name__))
-
-    def notifyOfPappVersionUpdate(self, pappName, pappVersion):
-        logger.info("Received PAPP update for %s version %s", pappName, pappVersion)
-        return self.loadPapp(pappName)
+        self._loadedPapps[pappName] = pappMain
 
 
 pappWorkerLoader = PappWorkerLoader()
