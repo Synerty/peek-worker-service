@@ -3,28 +3,28 @@ from typing import Type
 
 from papp_base.PappCommonEntryHookABC import PappCommonEntryHookABC
 from papp_base.worker.PappWorkerEntryHookABC import PappWorkerEntryHookABC
-from peek_platform.papp import PappLoaderABC
+from peek_platform.papp.PappLoaderABC import PappLoaderABC
 from peek_worker.papp.PeekWorkerPlatformHook import PeekWorkerPlatformHook
 
 logger = logging.getLogger(__name__)
 
 
-# class _CeleryLoaderMixin:
-#     ''' Celery Loader Mixin
-#
-#     Separate some logic out into this class
-#
-#     '''
-#
-#     @property
-#     def celeryAppIncludes(self):
-#         includes = []
-#         for pappWorkerMain in list(self._loadedPapps.values()):
-#             includes.extend(pappWorkerMain.celeryAppIncludes)
-#         return includes
+class _CeleryLoaderMixin:
+    ''' Celery Loader Mixin
+
+    Separate some logic out into this class
+
+    '''
+
+    @property
+    def celeryAppIncludes(self):
+        includes = []
+        for pappWorkerMain in list(self._loadedPapps.values()):
+            includes.extend(pappWorkerMain.celeryAppIncludes)
+        return includes
 
 
-class PappWorkerLoader(PappLoaderABC):#, _CeleryLoaderMixin):
+class PappWorkerLoader(PappLoaderABC, _CeleryLoaderMixin):
     _instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -46,7 +46,6 @@ class PappWorkerLoader(PappLoaderABC):#, _CeleryLoaderMixin):
 
     def _loadPappThrows(self, pappName: str, EntryHookClass: Type[PappCommonEntryHookABC],
                         pappRootDir: str) -> None:
-
         # Everyone gets their own instance of the papp API
         platformApi = PeekWorkerPlatformHook()
 
@@ -64,7 +63,6 @@ class PappWorkerLoader(PappLoaderABC):#, _CeleryLoaderMixin):
 
         # Start the Papp
         pappMain.start()
-
 
         self._loadedPapps[pappName] = pappMain
 

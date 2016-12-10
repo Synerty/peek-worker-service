@@ -1,41 +1,29 @@
 #!/usr/bin/env python
 """
- * synnova.py
- *
- *  Copyright Synerty Pty Ltd 2013
- *
- *  This software is proprietary, you are not free to copy
- *  or redistribute this code in any format.
- *
- *  All rights to this software are reserved by
- *  Synerty Pty Ltd
- *
+
+  Copyright Synerty Pty Ltd 2013
+
+  This software is proprietary, you are not free to copy
+  or redistribute this code in any format.
+
+  All rights to this software are reserved by
+  Synerty Pty Ltd
+
 """
+
+import logging
 import threading
+from threading import Thread
 
 import celery
 from celery.signals import worker_shutdown
-from txhttputil import LoggingUtil
-
-LoggingUtil.setup()
-
+from pytmpdir.Directory import DirSettings
 from twisted.internet import reactor
+from txhttputil.site.FileUploadRequest import FileUploadRequest
+from txhttputil.util.DeferUtil import printFailure
+from txhttputil.util.LoggingUtil import setupLogging
 
-from txhttputil import RapuiConfig
-from txhttputil import printFailure
-from txhttputil import DirSettings
-
-RapuiConfig.enabledJsRequire = False
-
-import logging
-from threading import Thread
-
-# EXAMPLE LOGGING CONFIG
-# Hide messages from vortex
-# logging.getLogger('txhttputil.vortex.VortexClient').setLevel(logging.INFO)
-
-# logging.getLogger('peek_worker_pof.realtime.RealtimePollerEcomProtocol'
-#                   ).setLevel(logging.INFO)
+setupLogging()
 
 logger = logging.getLogger(__name__)
 
@@ -43,21 +31,21 @@ logger = logging.getLogger(__name__)
 # Set the parallelism of the database and reactor
 reactor.suggestThreadPoolSize(10)
 
-# Enable this for PYPY
-try:
-    # CPython (Normal)
-    import psycopg2
-except:
-    # PYPY
-    from psycopg2cffi import compat
-
-    compat.register()
-
 
 # Allow the twisted reactor thread to restart the worker process
 
 
-def platformSetup():
+@celery.signals.after_setup_logger.connect
+def configureLogging(*args, **kwargs):
+    # Set default logging level
+    from peek_worker.PeekWorkerConfig import peekWorkerConfig
+    logging.root.setLevel(peekWorkerConfig.loggingLevel)
+
+    if peekWorkerConfig.loggingLevel != "DEBUG":
+        for name in ("celery.worker.strategy", "celery.app.trace", "celery.worker.job"):
+            logging.getLogger(name).setLevel(logging.WARNING)
+
+def setupPlatform():
     from peek_platform import PeekPlatformConfig
     PeekPlatformConfig.componentName = "peek_worker"
 
@@ -77,20 +65,14 @@ def platformSetup():
     from peek_worker.PeekWorkerConfig import peekWorkerConfig
     PeekPlatformConfig.config = peekWorkerConfig
 
+    # Set default logging level
+    logging.root.setLevel(peekWorkerConfig.loggingLevel)
+
     # Initialise the txhttputil Directory object
     DirSettings.defaultDirChmod = peekWorkerConfig.DEFAULT_DIR_CHMOD
     DirSettings.tmpDirPath = peekWorkerConfig.tmpPath
+    FileUploadRequest.tmpFilePath = peekWorkerConfig.tmpPath
 
-
-@celery.signals.after_setup_logger.connect
-def configureLogging(*args, **kwargs):
-    # Set default logging level
-    from peek_worker.PeekWorkerConfig import peekWorkerConfig
-    logging.root.setLevel(peekWorkerConfig.loggingLevel)
-
-    if peekWorkerConfig.loggingLevel != "DEBUG":
-        for name in ("celery.worker.strategy", "celery.app.trace", "celery.worker.job"):
-            logging.getLogger(name).setLevel(logging.WARNING)
 
 
 def twistedMain():
@@ -104,12 +86,12 @@ def twistedMain():
     PeekServerRestartWatchHandler.__unused = False
 
     # First, setup the Vortex Worker
-    from peek_platform import peekVortexClient
+    from peek_platform.PeekVortexClient import peekVortexClient
     d = peekVortexClient.connect()
     d.addErrback(printFailure)
 
     # Start Update Handler,
-    from peek_platform import peekSwVersionPollHandler
+    from peek_platform.sw_version.PeekSwVersionPollHandler import peekSwVersionPollHandler
     # Add both, The peek client_fe might fail to connect, and if it does, the payload
     # sent from the peekSwUpdater will be queued and sent when it does connect.
     d.addBoth(lambda _: peekSwVersionPollHandler.start())
@@ -157,7 +139,7 @@ def setPeekWorkerRestarting():
 
 
 if __name__ == '__main__':
-    platformSetup()
+    setupPlatform()
 
     # Initialise and run all the twisted stuff in another thread.
     twistedMainLoopThread = Thread(target=twistedMain)

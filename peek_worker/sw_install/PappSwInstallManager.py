@@ -2,7 +2,7 @@ import logging
 
 from twisted.internet import reactor
 
-from peek_platform import PappSwInstallManagerBase
+from peek_platform.sw_install.PappSwInstallManagerBase import PappSwInstallManagerBase
 from peek_worker.sw_install.PeekSwInstallManager import peekSwInstallManager
 
 logger = logging.getLogger(__name__)
