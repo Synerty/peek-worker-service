@@ -1,8 +1,11 @@
+
+# Ignore python compiled files
 *.pyc
-workspace.xml
+__pycache__
 
+# Ignore pycharm project settings
+.idea
 
-
-# Ignore pycharm project files
-.idea/
-
+dist/
+build/
+*.egg-info/

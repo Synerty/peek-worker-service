@@ -45,6 +45,7 @@ def configureLogging(*args, **kwargs):
         for name in ("celery.worker.strategy", "celery.app.trace", "celery.worker.job"):
             logging.getLogger(name).setLevel(logging.WARNING)
 
+
 def setupPlatform():
     from peek_platform import PeekPlatformConfig
     PeekPlatformConfig.componentName = "peek_worker"
@@ -72,7 +73,6 @@ def setupPlatform():
     DirSettings.defaultDirChmod = peekWorkerConfig.DEFAULT_DIR_CHMOD
     DirSettings.tmpDirPath = peekWorkerConfig.tmpPath
     FileUploadRequest.tmpFilePath = peekWorkerConfig.tmpPath
-
 
 
 def twistedMain():
@@ -138,7 +138,7 @@ def setPeekWorkerRestarting():
     peekWorkerRestarting = True
 
 
-if __name__ == '__main__':
+def main():
     setupPlatform()
 
     # Initialise and run all the twisted stuff in another thread.
@@ -168,3 +168,7 @@ if __name__ == '__main__':
     twistedMainLoopThread.join()
 
     logger.info("Reactor shutdown complete.")
+
+
+if __name__ == '__main__':
+    main()
