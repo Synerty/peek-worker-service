@@ -5,20 +5,20 @@ from twisted.internet import reactor
 from twisted.internet.defer import Deferred
 from twisted.trial import unittest
 
-from .PluginWorkerLoader import pluginWorkerLoader
+from .WorkerPluginLoader import workerPluginLoader
 
 logger = logging.getLogger(__name__)
 
 PLUGIN_NOOP = "plugin_noop"
 
 
-class PluginWorkerLoaderTest(unittest.TestCase):
+class WorkerPluginLoaderTest(unittest.TestCase):
     def testLoadAll(self):
-        pluginWorkerLoader.loadAllPlugins()
+        workerPluginLoader.loadAllPlugins()
 
-        logger.info(pluginWorkerLoader.listPlugins())
+        logger.info(workerPluginLoader.listPlugins())
 
-        for plugin in list(pluginWorkerLoader._loadedPlugins.values()):
+        for plugin in list(workerPluginLoader._loadedPlugins.values()):
             logger.info("configUrl = %s", plugin.configUrl())
 
         d = Deferred()
@@ -28,10 +28,10 @@ class PluginWorkerLoaderTest(unittest.TestCase):
     def testUnregister(self):
         loadedModuleBefore = set(sys.modules)
 
-        pluginWorkerLoader.loadPlugin(PLUGIN_NOOP)
+        workerPluginLoader.loadPlugin(PLUGIN_NOOP)
         self.assertTrue(PLUGIN_NOOP in sys.modules)
 
-        pluginWorkerLoader.unloadPlugin(PLUGIN_NOOP)
+        workerPluginLoader.unloadPlugin(PLUGIN_NOOP)
 
         loadedModuleNow = set(sys.modules) - loadedModuleBefore
 
@@ -40,10 +40,10 @@ class PluginWorkerLoaderTest(unittest.TestCase):
             self.assertFalse(PLUGIN_NOOP in modName)
 
     def testReRegister(self):
-        pluginWorkerLoader.loadPlugin(PLUGIN_NOOP)
-        pluginWorkerLoader.loadPlugin(PLUGIN_NOOP)
+        workerPluginLoader.loadPlugin(PLUGIN_NOOP)
+        workerPluginLoader.loadPlugin(PLUGIN_NOOP)
 
-        for plugin in list(pluginWorkerLoader._loadedPlugins.values()):
+        for plugin in list(workerPluginLoader._loadedPlugins.values()):
             logger.info("configUrl = %s", plugin.configUrl())
 
         d = Deferred()

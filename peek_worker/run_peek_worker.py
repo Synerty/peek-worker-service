@@ -59,8 +59,8 @@ def setupPlatform():
     PeekPlatformConfig.peekSwInstallManager = peekSwInstallManager
 
     # Tell the platform classes about our instance of the PeekLoaderBase
-    from peek_worker.plugin.PluginWorkerLoader import pluginWorkerLoader
-    PeekPlatformConfig.pluginLoader = pluginWorkerLoader
+    from peek_worker.plugin.WorkerPluginLoader import workerPluginLoader
+    PeekPlatformConfig.pluginLoader = workerPluginLoader
 
     # The config depends on the componentName, order is important
     from peek_worker.PeekWorkerConfig import peekWorkerConfig
@@ -98,8 +98,8 @@ def twistedMain():
 
     # Load all Plugins
     logger.info("Loading all Peek Apps")
-    from peek_worker.plugin.PluginWorkerLoader import pluginWorkerLoader
-    d.addBoth(lambda _: pluginWorkerLoader.loadAllPlugins())
+    from peek_worker.plugin.WorkerPluginLoader import workerPluginLoader
+    d.addBoth(lambda _: workerPluginLoader.loadAllPlugins())
 
     # Log Exception, convert the errback to callback
     d.addErrback(lambda f: logger.exception(f.value))

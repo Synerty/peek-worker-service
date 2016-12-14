@@ -24,11 +24,11 @@ class _CeleryLoaderMixin:
         return includes
 
 
-class PluginWorkerLoader(PluginLoaderABC, _CeleryLoaderMixin):
+class WorkerPluginLoader(PluginLoaderABC, _CeleryLoaderMixin):
     _instance = None
 
     def __new__(cls, *args, **kwargs):
-        assert cls._instance is None, "PluginWorkerLoader is a singleton, don't construct it"
+        assert cls._instance is None, "WorkerPluginLoader is a singleton, don't construct it"
         cls._instance = PluginLoaderABC.__new__(cls)
         return cls._instance
 
@@ -67,4 +67,4 @@ class PluginWorkerLoader(PluginLoaderABC, _CeleryLoaderMixin):
         self._loadedPlugins[pluginName] = pluginMain
 
 
-pluginWorkerLoader = PluginWorkerLoader()
+workerPluginLoader = WorkerPluginLoader()
