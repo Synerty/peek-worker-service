@@ -50,17 +50,17 @@ def setupPlatform():
     from peek_platform import PeekPlatformConfig
     PeekPlatformConfig.componentName = "peek_worker"
 
-    # Tell the platform classes about our instance of the pappSwInstallManager
-    from peek_worker.sw_install.PappSwInstallManager import pappSwInstallManager
-    PeekPlatformConfig.pappSwInstallManager = pappSwInstallManager
+    # Tell the platform classes about our instance of the pluginSwInstallManager
+    from peek_worker.sw_install.PluginSwInstallManager import pluginSwInstallManager
+    PeekPlatformConfig.pluginSwInstallManager = pluginSwInstallManager
 
     # Tell the platform classes about our instance of the PeekSwInstallManager
     from peek_worker.sw_install.PeekSwInstallManager import peekSwInstallManager
     PeekPlatformConfig.peekSwInstallManager = peekSwInstallManager
 
     # Tell the platform classes about our instance of the PeekLoaderBase
-    from peek_worker.papp.PappWorkerLoader import pappWorkerLoader
-    PeekPlatformConfig.pappLoader = pappWorkerLoader
+    from peek_worker.plugin.PluginWorkerLoader import pluginWorkerLoader
+    PeekPlatformConfig.pluginLoader = pluginWorkerLoader
 
     # The config depends on the componentName, order is important
     from peek_worker.PeekWorkerConfig import peekWorkerConfig
@@ -96,10 +96,10 @@ def twistedMain():
     # sent from the peekSwUpdater will be queued and sent when it does connect.
     d.addBoth(lambda _: peekSwVersionPollHandler.start())
 
-    # Load all Papps
+    # Load all Plugins
     logger.info("Loading all Peek Apps")
-    from peek_worker.papp.PappWorkerLoader import pappWorkerLoader
-    d.addBoth(lambda _: pappWorkerLoader.loadAllPapps())
+    from peek_worker.plugin.PluginWorkerLoader import pluginWorkerLoader
+    d.addBoth(lambda _: pluginWorkerLoader.loadAllPlugins())
 
     # Log Exception, convert the errback to callback
     d.addErrback(lambda f: logger.exception(f.value))
@@ -111,7 +111,7 @@ def twistedMain():
                               peekWorkerConfig.platformVersion))
 
     # Unlock the mutex
-    d.addCallback(lambda _: twistedPappsLoadedMutex.release())
+    d.addCallback(lambda _: twistedPluginsLoadedMutex.release())
 
     d.addErrback(printFailure)
 
@@ -122,15 +122,15 @@ def twistedMain():
 
 
 def celeryMain():
-    # Load all Papps
+    # Load all Plugins
     logger.info("Starting Celery")
     from peek_platform import CeleryApp
     CeleryApp.start()
 
 
-# Create the startup mutex, twisted has to load the papps before celery starts.
-twistedPappsLoadedMutex = threading.Lock()
-assert twistedPappsLoadedMutex.acquire()
+# Create the startup mutex, twisted has to load the plugins before celery starts.
+twistedPluginsLoadedMutex = threading.Lock()
+assert twistedPluginsLoadedMutex.acquire()
 
 
 def setPeekWorkerRestarting():
@@ -146,7 +146,7 @@ def main():
     twistedMainLoopThread.start()
 
     # Block until twisted has released it's lock
-    twistedPappsLoadedMutex.acquire()
+    twistedPluginsLoadedMutex.acquire()
 
     # Start the celery blocking main thread
     celeryMain()
