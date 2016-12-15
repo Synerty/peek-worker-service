@@ -1,6 +1,6 @@
 import logging
 
-from peek_platform.sw_install.PeekSwInstallManagerBase import PeekSwInstallManagerBase
+from peek_platform.sw_install.PeekSwInstallManagerABC import PeekSwInstallManagerABC
 from peek_worker.plugin.WorkerPluginLoader import workerPluginLoader
 
 __author__ = 'synerty'
@@ -8,10 +8,10 @@ __author__ = 'synerty'
 logger = logging.getLogger(__name__)
 
 
-class PeekSwInstallManager(PeekSwInstallManagerBase):
+class PeekSwInstallManager(PeekSwInstallManagerABC):
 
     def __init__(self):
-        PeekSwInstallManagerBase.__init__(self)
+        PeekSwInstallManagerABC.__init__(self)
         self._restarting  = False
 
     def _stopCode(self):
@@ -39,7 +39,7 @@ class PeekSwInstallManager(PeekSwInstallManagerBase):
         return self._restarting
 
     def realyRestartProcess(self):
-        PeekSwInstallManagerBase.restartProcess(self)
+        PeekSwInstallManagerABC.restartProcess(self)
 
 
 peekSwInstallManager = PeekSwInstallManager()
