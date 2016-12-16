@@ -4,7 +4,7 @@ from distutils.core import setup
 
 from setuptools import find_packages
 
-package_name = "peek_worker"
+package_name = "peek-worker"
 package_version = '0.0.6dev123456'
 
 egg_info = "%s.egg-info" % package_name
@@ -19,7 +19,7 @@ setup(
             'run_peek_worker = peek_worker.run_peek_worker.main',
         ],
     },
-    install_requires=["peek_platform"],
+    install_requires=["peek-platform"],
     version=package_version,
     description='Peek Platform - Worker Service',
     author='Synerty',
