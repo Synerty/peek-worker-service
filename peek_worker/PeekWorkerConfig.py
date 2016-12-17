@@ -15,6 +15,7 @@
 import logging
 
 from peek_platform.file_config.PeekFileConfigABC import PeekFileConfigABC
+from peek_platform.file_config.PeekFileConfigOsMixin import PeekFileConfigOsMixin
 from peek_platform.file_config.PeekFileConfigPeekServerClientMixin import \
     PeekFileConfigPeekServerClientMixin
 from peek_platform.file_config.PeekFileConfigPlatformMixin import \
@@ -28,6 +29,7 @@ logger = logging.getLogger(__name__)
 class PeekWorkerConfig(PeekFileConfigABC,
                        PeekFileConfigPeekServerClientMixin,
                        PeekFileConfigPlatformMixin,
+                       PeekFileConfigOsMixin,
                        PeekFileConfigSqlAlchemyMixin):
     """
     This class creates a basic worker configuration
