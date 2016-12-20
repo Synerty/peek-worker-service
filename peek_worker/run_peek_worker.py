@@ -48,7 +48,7 @@ def configureLogging(*args, **kwargs):
 
 def setupPlatform():
     from peek_platform import PeekPlatformConfig
-    PeekPlatformConfig.componentName = "peek_worker"
+    PeekPlatformConfig.componentName = "peek-worker"
 
     # Tell the platform classes about our instance of the pluginSwInstallManager
     from peek_worker.sw_install.PluginSwInstallManager import pluginSwInstallManager
