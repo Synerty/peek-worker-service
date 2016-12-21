@@ -37,4 +37,3 @@ class PeekWorkerConfig(PeekFileConfigABC,
 
 
 
-peekWorkerConfig = PeekWorkerConfig()

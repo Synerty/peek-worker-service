@@ -67,4 +67,3 @@ class WorkerPluginLoader(PluginLoaderABC, _CeleryLoaderMixin):
         self._loadedPlugins[pluginName] = pluginMain
 
 
-workerPluginLoader = WorkerPluginLoader()

@@ -1,7 +1,7 @@
 import logging
 
+from peek_platform import PeekPlatformConfig
 from peek_platform.sw_install.PeekSwInstallManagerABC import PeekSwInstallManagerABC
-from peek_worker.plugin.WorkerPluginLoader import workerPluginLoader
 
 __author__ = 'synerty'
 
@@ -15,13 +15,13 @@ class PeekSwInstallManager(PeekSwInstallManagerABC):
         self._restarting  = False
 
     def _stopCode(self):
-        workerPluginLoader.unloadAllPlugins()
+        PeekPlatformConfig.pluginLoader.unloadAllPlugins()
 
     def _upgradeCode(self):
         pass
 
     def _startCode(self):
-        workerPluginLoader.loadAllPlugins()
+        PeekPlatformConfig.pluginLoader.loadAllPlugins()
 
     def restartProcess(self):
         # When we receive this signal, the processes have already been instructed
@@ -42,4 +42,3 @@ class PeekSwInstallManager(PeekSwInstallManagerABC):
         PeekSwInstallManagerABC.restartProcess(self)
 
 
-peekSwInstallManager = PeekSwInstallManager()

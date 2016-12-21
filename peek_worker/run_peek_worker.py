@@ -23,6 +23,8 @@ from txhttputil.site.FileUploadRequest import FileUploadRequest
 from txhttputil.util.DeferUtil import printFailure
 from txhttputil.util.LoggingUtil import setupLogging
 
+from peek_platform import PeekPlatformConfig
+
 setupLogging()
 
 logger = logging.getLogger(__name__)
@@ -38,10 +40,9 @@ reactor.suggestThreadPoolSize(10)
 @celery.signals.after_setup_logger.connect
 def configureLogging(*args, **kwargs):
     # Set default logging level
-    from peek_worker.PeekWorkerConfig import peekWorkerConfig
-    logging.root.setLevel(peekWorkerConfig.loggingLevel)
+    logging.root.setLevel(PeekPlatformConfig.config.loggingLevel)
 
-    if peekWorkerConfig.loggingLevel != "DEBUG":
+    if PeekPlatformConfig.config.loggingLevel != "DEBUG":
         for name in ("celery.worker.strategy", "celery.app.trace", "celery.worker.job"):
             logging.getLogger(name).setLevel(logging.WARNING)
 
@@ -51,28 +52,28 @@ def setupPlatform():
     PeekPlatformConfig.componentName = "peek-worker"
 
     # Tell the platform classes about our instance of the pluginSwInstallManager
-    from peek_worker.sw_install.PluginSwInstallManager import pluginSwInstallManager
-    PeekPlatformConfig.pluginSwInstallManager = pluginSwInstallManager
+    from peek_worker.sw_install.PluginSwInstallManager import PluginSwInstallManager
+    PeekPlatformConfig.pluginSwInstallManager = PluginSwInstallManager()
 
     # Tell the platform classes about our instance of the PeekSwInstallManager
-    from peek_worker.sw_install.PeekSwInstallManager import peekSwInstallManager
-    PeekPlatformConfig.peekSwInstallManager = peekSwInstallManager
+    from peek_worker.sw_install.PeekSwInstallManager import PeekSwInstallManager
+    PeekPlatformConfig.peekSwInstallManager = PeekSwInstallManager()
 
     # Tell the platform classes about our instance of the PeekLoaderBase
-    from peek_worker.plugin.WorkerPluginLoader import workerPluginLoader
-    PeekPlatformConfig.pluginLoader = workerPluginLoader
+    from peek_worker.plugin.WorkerPluginLoader import WorkerPluginLoader
+    PeekPlatformConfig.pluginLoader = WorkerPluginLoader()
 
     # The config depends on the componentName, order is important
-    from peek_worker.PeekWorkerConfig import peekWorkerConfig
-    PeekPlatformConfig.config = peekWorkerConfig
+    from peek_worker.PeekWorkerConfig import PeekWorkerConfig
+    PeekPlatformConfig.config = PeekWorkerConfig()
 
     # Set default logging level
-    logging.root.setLevel(peekWorkerConfig.loggingLevel)
+    logging.root.setLevel(PeekPlatformConfig.config.loggingLevel)
 
     # Initialise the txhttputil Directory object
-    DirSettings.defaultDirChmod = peekWorkerConfig.DEFAULT_DIR_CHMOD
-    DirSettings.tmpDirPath = peekWorkerConfig.tmpPath
-    FileUploadRequest.tmpFilePath = peekWorkerConfig.tmpPath
+    DirSettings.defaultDirChmod = PeekPlatformConfig.config.DEFAULT_DIR_CHMOD
+    DirSettings.tmpDirPath = PeekPlatformConfig.config.tmpPath
+    FileUploadRequest.tmpFilePath = PeekPlatformConfig.config.tmpPath
 
 
 def twistedMain():
@@ -98,17 +99,15 @@ def twistedMain():
 
     # Load all Plugins
     logger.info("Loading all Peek Apps")
-    from peek_worker.plugin.WorkerPluginLoader import workerPluginLoader
-    d.addBoth(lambda _: workerPluginLoader.loadAllPlugins())
+    d.addBoth(lambda _: PeekPlatformConfig.pluginLoader.loadAllPlugins())
 
     # Log Exception, convert the errback to callback
     d.addErrback(lambda f: logger.exception(f.value))
 
     # Log that the reactor has started
-    from peek_worker.PeekWorkerConfig import peekWorkerConfig
     d.addCallback(lambda _:
                   logger.info('Peek Worker is running, version=%s',
-                              peekWorkerConfig.platformVersion))
+                              PeekPlatformConfig.config.platformVersion))
 
     # Unlock the mutex
     d.addCallback(lambda _: twistedPluginsLoadedMutex.release())
@@ -152,12 +151,11 @@ def main():
     celeryMain()
     logger.info("Celery has shutdown")
 
-    from peek_worker.sw_install.PeekSwInstallManager import peekSwInstallManager
 
-    if peekSwInstallManager.restartTriggered:
+    if PeekPlatformConfig.peekSwInstallManager.restartTriggered:
 
         logger.info("Restarting Peek Worker")
-        peekSwInstallManager.realyRestartProcess()
+        PeekPlatformConfig.peekSwInstallManager.realyRestartProcess()
 
     else:
         # Tell twisted to stop
