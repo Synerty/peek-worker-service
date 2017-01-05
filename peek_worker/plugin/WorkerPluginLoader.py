@@ -1,9 +1,9 @@
 import logging
-from typing import Type
+from typing import Type, Tuple
 
+from peek_platform.plugin.PluginLoaderABC import PluginLoaderABC
 from peek_plugin_base.PluginCommonEntryHookABC import PluginCommonEntryHookABC
 from peek_plugin_base.worker.PluginWorkerEntryHookABC import PluginWorkerEntryHookABC
-from peek_platform.plugin.PluginLoaderABC import PluginLoaderABC
 from peek_worker.plugin.PeekWorkerPlatformHook import PeekWorkerPlatformHook
 
 logger = logging.getLogger(__name__)
@@ -44,14 +44,16 @@ class WorkerPluginLoader(PluginLoaderABC, _CeleryLoaderMixin):
     def _platformServiceNames(self) -> [str]:
         return ["worker"]
 
-    def _loadPluginThrows(self, pluginName: str, EntryHookClass: Type[PluginCommonEntryHookABC],
-                        pluginRootDir: str) -> None:
+    def _loadPluginThrows(self, pluginName: str,
+                          EntryHookClass: Type[PluginCommonEntryHookABC],
+                          pluginRootDir: str,
+                          requiresService: Tuple[str, ...]) -> None:
         # Everyone gets their own instance of the plugin API
         platformApi = PeekWorkerPlatformHook()
 
         pluginMain = EntryHookClass(pluginName=pluginName,
-                                  pluginRootDir=pluginRootDir,
-                                  platform=platformApi)
+                                    pluginRootDir=pluginRootDir,
+                                    platform=platformApi)
 
         # Load the plugin
         pluginMain.load()
@@ -65,5 +67,3 @@ class WorkerPluginLoader(PluginLoaderABC, _CeleryLoaderMixin):
         pluginMain.start()
 
         self._loadedPlugins[pluginName] = pluginMain
-
-

@@ -24,6 +24,8 @@ from txhttputil.util.DeferUtil import printFailure
 from txhttputil.util.LoggingUtil import setupLogging
 
 from peek_platform import PeekPlatformConfig
+from peek_plugin_base.PeekVortexUtil import peekWorkerName
+from vortex.VortexFactory import VortexFactory
 
 setupLogging()
 
@@ -49,7 +51,7 @@ def configureLogging(*args, **kwargs):
 
 def setupPlatform():
     from peek_platform import PeekPlatformConfig
-    PeekPlatformConfig.componentName = "peek-worker"
+    PeekPlatformConfig.componentName = peekWorkerName
 
     # Tell the platform classes about our instance of the pluginSwInstallManager
     from peek_worker.sw_install.PluginSwInstallManager import PluginSwInstallManager
@@ -86,9 +88,11 @@ def twistedMain():
     from peek_platform import PeekServerRestartWatchHandler
     PeekServerRestartWatchHandler.__unused = False
 
-    # First, setup the Vortex Worker
-    from peek_platform.PeekVortexClient import peekVortexClient
-    d = peekVortexClient.connect()
+    # First, setup the VortexServer Worker
+    from peek_platform import PeekPlatformConfig
+    d = VortexFactory.createClient(PeekPlatformConfig.componentName,
+                                   PeekPlatformConfig.config.peekServerHost,
+                                   PeekPlatformConfig.config.peekServerPort)
     d.addErrback(printFailure)
 
     # Start Update Handler,
