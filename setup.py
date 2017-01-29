@@ -40,7 +40,7 @@ setup(
     package_data={'': package_files},
     entry_points={
         'console_scripts': [
-            'run_peek_worker = peek_worker.run_peek_worker.main',
+            'run_peek_worker = peek_worker.run_peek_worker:main',
         ],
     },
     install_requires=["peek-platform"],
