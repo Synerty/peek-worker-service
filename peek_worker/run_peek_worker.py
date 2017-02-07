@@ -90,9 +90,9 @@ def twistedMain():
 
     # First, setup the VortexServer Worker
     from peek_platform import PeekPlatformConfig
-    d = VortexFactory.createClient(PeekPlatformConfig.componentName,
-                                   PeekPlatformConfig.config.peekServerHost,
-                                   PeekPlatformConfig.config.peekServerPort)
+    d = VortexFactory.createTcpClient(PeekPlatformConfig.componentName,
+                                       PeekPlatformConfig.config.peekServerHost,
+                                       PeekPlatformConfig.config.peekServerVortexTcpPort)
     d.addErrback(printFailure)
 
     # Start Update Handler,
