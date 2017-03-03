@@ -84,7 +84,7 @@ def twistedMain():
     # import pydevd
     # pydevd.settrace(suspend=False)
 
-    # Load server_fe restart handler handler
+    # Load server_fe_app restart handler handler
     from peek_platform import PeekServerRestartWatchHandler
     PeekServerRestartWatchHandler.__unused = False
 
@@ -97,7 +97,7 @@ def twistedMain():
 
     # Start Update Handler,
     from peek_platform.sw_version.PeekSwVersionPollHandler import peekSwVersionPollHandler
-    # Add both, The peek client_fe might fail to connect, and if it does, the payload
+    # Add both, The peek client_fe_app might fail to connect, and if it does, the payload
     # sent from the peekSwUpdater will be queued and sent when it does connect.
     d.addBoth(lambda _: peekSwVersionPollHandler.start())
 
