@@ -25,6 +25,7 @@ from txhttputil.util.LoggingUtil import setupLogging
 
 from peek_platform import PeekPlatformConfig
 from peek_plugin_base.PeekVortexUtil import peekWorkerName
+from vortex.DeferUtil import vortexLogFailure
 from vortex.VortexFactory import VortexFactory
 
 setupLogging()
@@ -116,7 +117,7 @@ def twistedMain():
     # Unlock the mutex
     d.addCallback(lambda _: twistedPluginsLoadedMutex.release())
 
-    d.addErrback(printFailure)
+    d.addErrback(vortexLogFailure, logger, consumeError=True)
 
     # Run the reactor in a thread
     reactor.callLater(0, logger.info, "Reactor started")
