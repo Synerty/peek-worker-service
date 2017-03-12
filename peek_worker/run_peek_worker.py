@@ -170,6 +170,9 @@ def main():
     # Wait for twisted to stop
     twistedMainLoopThread.join()
 
+    # reactor.addSystemEventTrigger('before', 'shutdown',
+    #                               PeekPlatformConfig.pluginLoader.unloadAllPlugins)
+
     logger.info("Reactor shutdown complete.")
 
 
