@@ -24,7 +24,7 @@ from txhttputil.util.DeferUtil import printFailure
 from txhttputil.util.LoggingUtil import setupLogging
 
 from peek_platform import PeekPlatformConfig
-from peek_plugin_base.PeekVortexUtil import peekWorkerName
+from peek_plugin_base.PeekVortexUtil import peekWorkerName, peekServerName
 from vortex.DeferUtil import vortexLogFailure
 from vortex.VortexFactory import VortexFactory
 
@@ -85,9 +85,15 @@ def twistedMain():
     # import pydevd
     # pydevd.settrace(suspend=False)
 
-    # Load server_fe_app restart handler handler
-    from peek_platform import PeekServerRestartWatchHandler
-    PeekServerRestartWatchHandler.__unused = False
+    # Make the agent restart when the server restarts, or when it looses connection
+    def restart(status):
+        from peek_platform import PeekPlatformConfig
+        PeekPlatformConfig.peekSwInstallManager.restartProcess()
+
+    (VortexFactory.subscribeToVortexStatusChange(peekServerName)
+        .filter(lambda online:online == False)
+        .subscribe(on_next=restart)
+     )
 
     # First, setup the VortexServer Worker
     from peek_platform import PeekPlatformConfig
