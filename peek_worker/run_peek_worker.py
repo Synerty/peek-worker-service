@@ -162,9 +162,10 @@ def main():
     celeryMain()
     logger.info("Celery has shutdown")
 
+    # Shutdown the Vortex
+    VortexFactory.shutdown()
 
     if PeekPlatformConfig.peekSwInstallManager.restartTriggered:
-
         logger.info("Restarting Peek Worker")
         PeekPlatformConfig.peekSwInstallManager.realyRestartProcess()
 
@@ -175,11 +176,10 @@ def main():
 
     # Wait for twisted to stop
     twistedMainLoopThread.join()
-
-    # reactor.addSystemEventTrigger('before', 'shutdown',
-    #                               PeekPlatformConfig.pluginLoader.unloadAllPlugins)
-
     logger.info("Reactor shutdown complete.")
+
+    PeekPlatformConfig.pluginLoader.unloadAllPlugins()
+    logger.info("Worker Service shutdown complete.")
 
 
 if __name__ == '__main__':
