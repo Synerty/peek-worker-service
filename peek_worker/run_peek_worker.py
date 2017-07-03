@@ -110,7 +110,8 @@ def twistedMain():
 
     # Load all Plugins
     logger.info("Loading all Peek Apps")
-    d.addBoth(lambda _: PeekPlatformConfig.pluginLoader.loadAllPlugins())
+    d.addBoth(lambda _: PeekPlatformConfig.pluginLoader.loadCorePlugins())
+    d.addBoth(lambda _: PeekPlatformConfig.pluginLoader.loadOptionalPlugins())
 
     # Log Exception, convert the errback to callback
     d.addErrback(lambda f: logger.exception(f.value))
@@ -134,7 +135,7 @@ def twistedMain():
 def celeryMain():
     # Load all Plugins
     logger.info("Starting Celery")
-    from peek_platform import CeleryApp
+    from peek_worker import CeleryApp
     CeleryApp.start()
 
 

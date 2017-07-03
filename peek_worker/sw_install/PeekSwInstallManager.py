@@ -29,7 +29,7 @@ class PeekSwInstallManager(PeekSwInstallManagerABC):
 
         self._restarting = True
 
-        from peek_platform.CeleryApp import celeryApp
+        from peek_platform.ConfigCeleryApp import celeryApp
         logger.info("Shutting down celery workers")
         celeryApp.control.broadcast('shutdown')
 
