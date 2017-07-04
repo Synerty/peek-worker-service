@@ -1,6 +1,8 @@
 import logging
 from typing import Type, Tuple
 
+from twisted.internet.defer import inlineCallbacks
+
 from peek_platform.plugin.PluginLoaderABC import PluginLoaderABC
 from peek_plugin_base.PluginCommonEntryHookABC import PluginCommonEntryHookABC
 from peek_plugin_base.worker.PluginWorkerEntryHookABC import PluginWorkerEntryHookABC
@@ -44,6 +46,7 @@ class WorkerPluginLoader(PluginLoaderABC, _CeleryLoaderMixin):
     def _platformServiceNames(self) -> [str]:
         return ["worker"]
 
+    @inlineCallbacks
     def _loadPluginThrows(self, pluginName: str,
                           EntryHookClass: Type[PluginCommonEntryHookABC],
                           pluginRootDir: str,
@@ -56,7 +59,7 @@ class WorkerPluginLoader(PluginLoaderABC, _CeleryLoaderMixin):
                                     platform=platformApi)
 
         # Load the plugin
-        pluginMain.load()
+        yield pluginMain.load()
 
         # Configure the celery app in the worker
         # This is not the worker that will be started, it allows the worker to queue tasks
@@ -64,6 +67,6 @@ class WorkerPluginLoader(PluginLoaderABC, _CeleryLoaderMixin):
         configureCeleryApp(pluginMain.celeryApp)
 
         # Start the Plugin
-        pluginMain.start()
+        yield pluginMain.start()
 
         self._loadedPlugins[pluginName] = pluginMain
