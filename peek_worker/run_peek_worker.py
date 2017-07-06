@@ -18,13 +18,12 @@ from threading import Thread
 import celery
 from celery.signals import worker_shutdown
 from pytmpdir.Directory import DirSettings
-from twisted.internet import reactor
-from txhttputil.site.FileUploadRequest import FileUploadRequest
-from txhttputil.util.DeferUtil import printFailure
-from txhttputil.util.LoggingUtil import setupLogging
+from twisted.internet import reactor, defer
 
 from peek_platform import PeekPlatformConfig
 from peek_plugin_base.PeekVortexUtil import peekWorkerName, peekServerName
+from txhttputil.site.FileUploadRequest import FileUploadRequest
+from txhttputil.util.LoggingUtil import setupLogging
 from vortex.DeferUtil import vortexLogFailure
 from vortex.VortexFactory import VortexFactory
 
@@ -35,6 +34,7 @@ logger = logging.getLogger(__name__)
 # ------------------------------------------------------------------------------
 # Set the parallelism of the database and reactor
 reactor.suggestThreadPoolSize(10)
+defer.setDebugging(True)
 
 
 # Allow the twisted reactor thread to restart the worker process
@@ -91,22 +91,21 @@ def twistedMain():
         PeekPlatformConfig.peekSwInstallManager.restartProcess()
 
     (VortexFactory.subscribeToVortexStatusChange(peekServerName)
-        .filter(lambda online:online == False)
-        .subscribe(on_next=restart)
+     .filter(lambda online: online == False)
+     .subscribe(on_next=restart)
      )
 
     # First, setup the VortexServer Worker
     from peek_platform import PeekPlatformConfig
     d = VortexFactory.createTcpClient(PeekPlatformConfig.componentName,
-                                       PeekPlatformConfig.config.peekServerHost,
-                                       PeekPlatformConfig.config.peekServerVortexTcpPort)
-    d.addErrback(printFailure)
+                                      PeekPlatformConfig.config.peekServerHost,
+                                      PeekPlatformConfig.config.peekServerVortexTcpPort)
+    d.addErrback(vortexLogFailure, logger, consumeError=True)
 
     # Start Update Handler,
-    from peek_platform.sw_version.PeekSwVersionPollHandler import peekSwVersionPollHandler
     # Add both, The peek client_fe_app might fail to connect, and if it does, the payload
     # sent from the peekSwUpdater will be queued and sent when it does connect.
-    d.addBoth(lambda _: peekSwVersionPollHandler.start())
+    # d.addBoth(lambda _: peekSwVersionPollHandler.start())
 
     # Load all Plugins
     logger.info("Loading all Peek Apps")
