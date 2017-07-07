@@ -9,3 +9,8 @@ class PeekWorkerPlatformHook(PeekWorkerPlatformHookABC):
         """ Get Other Plugin API
         """
         raise Exception("Workers don't share APIs")
+
+    @property
+    def serviceId(self) -> str:
+        import socket
+        return "worker|" + socket.gethostname()
