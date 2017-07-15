@@ -50,7 +50,7 @@ class WorkerPluginLoader(PluginLoaderABC, _CeleryLoaderMixin):
     def _loadPluginThrows(self, pluginName: str,
                           EntryHookClass: Type[PluginCommonEntryHookABC],
                           pluginRootDir: str,
-                          requiresService: Tuple[str, ...]) -> None:
+                          requiresService: Tuple[str, ...]) -> PluginCommonEntryHookABC:
         # Everyone gets their own instance of the plugin API
         platformApi = PeekWorkerPlatformHook()
 
@@ -64,9 +64,7 @@ class WorkerPluginLoader(PluginLoaderABC, _CeleryLoaderMixin):
         # Configure the celery app in the worker
         # This is not the worker that will be started, it allows the worker to queue tasks
         from peek_platform.ConfigCeleryApp import configureCeleryApp
-        configureCeleryApp(pluginMain.celeryApp)
-
-        # Start the Plugin
-        yield pluginMain.start()
+        from peek_platform import PeekPlatformConfig
+        configureCeleryApp(pluginMain.celeryApp, PeekPlatformConfig.config)
 
         self._loadedPlugins[pluginName] = pluginMain
