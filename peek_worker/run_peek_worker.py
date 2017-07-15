@@ -17,6 +17,7 @@ from threading import Thread
 
 import celery
 from celery.signals import worker_shutdown
+from peek_platform.file_config.PeekFileConfigWorkerMixin import PeekFileConfigWorkerMixin
 from pytmpdir.Directory import DirSettings
 from twisted.internet import reactor, defer
 
@@ -132,10 +133,12 @@ def twistedMain():
 
 
 def celeryMain():
+    from peek_platform import PeekPlatformConfig
+
     # Load all Plugins
     logger.info("Starting Celery")
     from peek_worker import CeleryApp
-    CeleryApp.start()
+    CeleryApp.start(PeekPlatformConfig.config)
 
 
 # Create the startup mutex, twisted has to load the plugins before celery starts.
