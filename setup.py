@@ -44,6 +44,7 @@ setup(
     entry_points={
         'console_scripts': [
             'run_peek_worker = peek_worker.run_peek_worker:main',
+            'winsvc_peek_worker = peek_worker.winsvc_peek_worker:main',
         ],
     },
     install_requires=["peek-platform"],
