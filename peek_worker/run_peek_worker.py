@@ -15,9 +15,6 @@ import logging
 import threading
 from threading import Thread
 
-import celery
-from celery.signals import worker_shutdown
-from peek_platform.file_config.PeekFileConfigWorkerMixin import PeekFileConfigWorkerMixin
 from pytmpdir.Directory import DirSettings
 from twisted.internet import reactor, defer
 
@@ -41,14 +38,6 @@ defer.setDebugging(True)
 # Allow the twisted reactor thread to restart the worker process
 
 
-@celery.signals.after_setup_logger.connect
-def configureLogging(*args, **kwargs):
-    # Set default logging level
-    logging.root.setLevel(PeekPlatformConfig.config.loggingLevel)
-
-    if PeekPlatformConfig.config.loggingLevel != "DEBUG":
-        for name in ("celery.worker.strategy", "celery.app.trace", "celery.worker.job"):
-            logging.getLogger(name).setLevel(logging.WARNING)
 
 
 def setupPlatform():
