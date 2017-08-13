@@ -103,7 +103,7 @@ def twistedMain():
     d.addBoth(lambda _: PeekPlatformConfig.pluginLoader.loadOptionalPlugins())
 
     # Log Exception, convert the errback to callback
-    d.addErrback(lambda f: logger.exception(f.value))
+    d.addErrback(vortexLogFailure, logger, consumeError=True)
 
     # Log that the reactor has started
     d.addCallback(lambda _:
