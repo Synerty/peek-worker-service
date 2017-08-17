@@ -98,9 +98,14 @@ def twistedMain():
     # d.addBoth(lambda _: peekSwVersionPollHandler.start())
 
     # Load all Plugins
-    logger.info("Loading all Peek Apps")
+
+    d.addBoth(lambda _: logger.info("Loading all Peek Plugins"))
     d.addBoth(lambda _: PeekPlatformConfig.pluginLoader.loadCorePlugins())
     d.addBoth(lambda _: PeekPlatformConfig.pluginLoader.loadOptionalPlugins())
+
+    d.addBoth(lambda _: logger.info("Starting all Peek Plugins"))
+    d.addBoth(lambda _: PeekPlatformConfig.pluginLoader.startCorePlugins())
+    d.addBoth(lambda _: PeekPlatformConfig.pluginLoader.startOptionalPlugins())
 
     # Log Exception, convert the errback to callback
     d.addErrback(vortexLogFailure, logger, consumeError=True)
