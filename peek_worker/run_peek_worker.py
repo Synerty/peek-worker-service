@@ -175,6 +175,9 @@ def main():
     twistedMainLoopThread.join()
     logger.info("Reactor shutdown complete.")
 
+    PeekPlatformConfig.pluginLoader.stopCorePlugins()
+    PeekPlatformConfig.pluginLoader.stopOptionalPlugins()
+
     PeekPlatformConfig.pluginLoader.unloadCorePlugins()
     PeekPlatformConfig.pluginLoader.unloadOptionalPlugins()
     logger.info("Worker Service shutdown complete.")
