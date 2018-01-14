@@ -29,16 +29,6 @@ setupLogging()
 
 logger = logging.getLogger(__name__)
 
-# ------------------------------------------------------------------------------
-# Set the parallelism of the database and reactor
-reactor.suggestThreadPoolSize(10)
-defer.setDebugging(True)
-
-
-# Allow the twisted reactor thread to restart the worker process
-
-
-
 
 def setupPlatform():
     from peek_platform import PeekPlatformConfig
@@ -63,6 +53,12 @@ def setupPlatform():
     # Set default logging level
     logging.root.setLevel(PeekPlatformConfig.config.loggingLevel)
 
+    if logging.root.level == logging.DEBUG:
+        defer.setDebugging(True)
+
+    # The worker doesn't need any threads
+    reactor.suggestThreadPoolSize(1)
+
     # Initialise the txhttputil Directory object
     DirSettings.defaultDirChmod = PeekPlatformConfig.config.DEFAULT_DIR_CHMOD
     DirSettings.tmpDirPath = PeekPlatformConfig.config.tmpPath
@@ -81,9 +77,9 @@ def twistedMain():
         PeekPlatformConfig.peekSwInstallManager.restartProcess()
 
     (VortexFactory.subscribeToVortexStatusChange(peekServerName)
-     .filter(lambda online: online == False)
-     .subscribe(on_next=restart)
-     )
+        .filter(lambda online: online == False)
+        .subscribe(on_next=restart)
+        )
 
     # First, setup the VortexServer Worker
     from peek_platform import PeekPlatformConfig
