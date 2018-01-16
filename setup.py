@@ -4,7 +4,7 @@ from setuptools import setup
 
 pip_package_name = "peek-worker"
 py_package_name = "peek_worker"
-package_version = '0.8.1'
+package_version = '0.8.2'
 
 egg_info = "%s.egg-info" % pip_package_name
 if os.path.isdir(egg_info):
