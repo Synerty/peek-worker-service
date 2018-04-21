@@ -65,7 +65,7 @@ def setupPlatform():
     FileUploadRequest.tmpFilePath = PeekPlatformConfig.config.tmpPath
 
 
-def twistedMain():
+def twistedMain(winSvcDeferred=None):
     # defer.setDebugging(True)
     # sys.argv.remove(DEBUG_ARG)
     # import pydevd
@@ -116,6 +116,9 @@ def twistedMain():
 
     d.addErrback(vortexLogFailure, logger, consumeError=True)
 
+    if winSvcDeferred:
+        d.chainDeferred(winSvcDeferred)
+
     # Run the reactor in a thread
     reactor.callLater(0, logger.info, "Reactor started")
 
@@ -141,11 +144,11 @@ def setPeekWorkerRestarting():
     peekWorkerRestarting = True
 
 
-def main():
+def main(winSvcDeferred=None):
     setupPlatform()
 
     # Initialise and run all the twisted stuff in another thread.
-    twistedMainLoopThread = Thread(target=twistedMain)
+    twistedMainLoopThread = Thread(target=lambda : twistedMain(winSvcDeferred))
     twistedMainLoopThread.start()
 
     # Block until twisted has released it's lock
