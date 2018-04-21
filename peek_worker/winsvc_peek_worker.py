@@ -1,5 +1,6 @@
 import platform
 
+import peek_worker
 from peek_platform.util.LogUtil import setupServiceLogOutput
 
 try:
@@ -18,7 +19,7 @@ from peek_worker import run_peek_worker
 
 class PeekSvc(win32serviceutil.ServiceFramework):
     _svc_name_ = "peek_worker"
-    _svc_display_name_ = "Peek Worker"
+    _svc_display_name_ = "Peek Worker " + peek_worker.__version__
 
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
