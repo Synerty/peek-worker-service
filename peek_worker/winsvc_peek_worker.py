@@ -52,7 +52,10 @@ class PeekSvc(win32serviceutil.ServiceFramework):
 # Patch the restart method for windows services
 class _Restart:
     def _restartProcess(self):
-        win32serviceutil.RestartService(PeekSvc._svc_name_)
+
+        # Shutting down celery workers
+        from peek_worker.CeleryApp import celeryApp
+        celeryApp.control.broadcast('shutdown')
 
 
 # Patch the restart call for windows
