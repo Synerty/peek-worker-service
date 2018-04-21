@@ -27,10 +27,10 @@ class PeekSvc(win32serviceutil.ServiceFramework):
 
         reactor.addSystemEventTrigger('after', 'shutdown', self._notifyOfStop)
 
-    def _notifyOfStop(self, _):
+    def _notifyOfStop(self):
         self.ReportServiceStatus(win32service.SERVICE_STOPPED)
 
-    def _notifyOfStart(self, _):
+    def _notifyOfStart(self):
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
     def SvcStop(self):
@@ -43,10 +43,8 @@ class PeekSvc(win32serviceutil.ServiceFramework):
 
     def SvcDoRun(self):
         self.ReportServiceStatus(win32service.SERVICE_START_PENDING)
-        d = Deferred()
-        d.addBoth(self._notifyOfStart)
-
-        run_peek_worker.main(d)
+        reactor.callLater(1, self._notifyOfStart)
+        run_peek_worker.main()
 
 
 # Patch the restart method for windows services
