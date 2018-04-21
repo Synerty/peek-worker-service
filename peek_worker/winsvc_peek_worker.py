@@ -15,6 +15,7 @@ from twisted.internet.defer import Deferred
 
 from peek_worker import run_peek_worker
 
+
 class PeekSvc(win32serviceutil.ServiceFramework):
     _svc_name_ = "peek_worker"
     _svc_display_name_ = "Peek Worker"
@@ -46,14 +47,19 @@ class PeekSvc(win32serviceutil.ServiceFramework):
 
         run_peek_worker.main(d)
 
+
 # Patch the restart method for windows services
 class _Restart:
     def _restartProcess(self):
         win32serviceutil.RestartService(PeekSvc._svc_name_)
 
+
 # Patch the restart call for windows
-from peek_platform import PeekPlatformConfig
-PeekPlatformConfig.peekSwInstallManager.restartProcess = _Restart._restartProcess
+
+from peek_worker.sw_install.PeekSwInstallManager import PeekSwInstallManager
+PeekSwInstallManager.restartProcess = _Restart._restartProcess
+
+
 # end patch
 
 def main():
