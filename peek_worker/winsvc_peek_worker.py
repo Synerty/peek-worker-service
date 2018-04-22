@@ -14,6 +14,7 @@ from peek_platform.sw_install.PeekSwInstallManagerABC import IS_WIN_SVC
 class PeekSvc(win32serviceutil.ServiceFramework):
     _svc_name_ = "peek-worker"
     _svc_display_name_ = "Peek Worker " + peek_worker.__version__
+    _exe_args_ = IS_WIN_SVC # Not needed here
 
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
