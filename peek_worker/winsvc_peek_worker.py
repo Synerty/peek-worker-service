@@ -1,11 +1,11 @@
-import peek_worker
-
 import logging
 import subprocess
 
 import win32api
 import win32service
 import win32serviceutil
+
+import peek_worker
 
 logger = logging.getLogger(__name__)
 from peek_platform.sw_install.PeekSwInstallManagerABC import IS_WIN_SVC
@@ -14,7 +14,8 @@ from peek_platform.sw_install.PeekSwInstallManagerABC import IS_WIN_SVC
 class PeekSvc(win32serviceutil.ServiceFramework):
     _svc_name_ = "peek-worker"
     _svc_display_name_ = "Peek Worker " + peek_worker.__version__
-    _exe_args_ = IS_WIN_SVC # Not needed here
+    _exe_args_ = IS_WIN_SVC  # Not needed here
+    _svc_deps_ = ["RpcSs", "postgres-10", "Redis", "RabbitMQ"]
 
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
@@ -49,6 +50,7 @@ class PeekSvc(win32serviceutil.ServiceFramework):
         except Exception as e:
             logger.exception(e)
             raise
+
 
 def main():
     win32serviceutil.HandleCommandLine(PeekSvc)
