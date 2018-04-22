@@ -1,80 +1,53 @@
-import logging
-
-
 # import peek_worker
 
-import win32serviceutil
-import win32service
-import win32event
+import logging
+import subprocess
 
-from twisted.internet import reactor
-from twisted.internet.defer import Deferred
+import win32api
+import win32service
+import win32serviceutil
 
 logger = logging.getLogger(__name__)
+from peek_platform.sw_install.PeekSwInstallManagerABC import IS_WIN_SVC
+
 
 class PeekSvc(win32serviceutil.ServiceFramework):
     _svc_name_ = "peek_worker"
-    _svc_display_name_ = "Peek Worker " #+ peek_worker.__version__
+    _svc_display_name_ = "Peek Worker "  # + peek_worker.__version__
 
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
-        self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
 
-        reactor.addSystemEventTrigger('after', 'shutdown', self._notifyOfStop)
-
-    def _notifyOfStop(self):
-        self.ReportServiceStatus(win32service.SERVICE_STOPPED)
-
-    def _notifyOfStart(self):
-        self.ReportServiceStatus(win32service.SERVICE_RUNNING)
+        self._runningPid = None
 
     def SvcStop(self):
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
-        win32event.SetEvent(self.hWaitStop)
+        if self._runningPid is None:
+            return
 
-        # Shutting down celery workers
-        from peek_worker.CeleryApp import celeryApp
-        celeryApp.control.broadcast('shutdown')
+        PROCESS_TERMINATE = 1
+        handle = win32api.OpenProcess(
+            PROCESS_TERMINATE, False, self._runningPid)
+        win32api.TerminateProcess(handle, -1)
+        win32api.CloseHandle(handle)
+
+        self.ReportServiceStatus(win32service.SERVICE_STOPPED)
 
     def SvcDoRun(self):
+        self.ReportServiceStatus(win32service.SERVICE_START_PENDING)
         try:
-            from peek_worker import run_peek_worker
 
-            # # Setup service status notifiers
-            # self.ReportServiceStatus(win32service.SERVICE_START_PENDING)
-            # reactor.callLater(1, self._notifyOfStart)
+            proc = subprocess.Popen(
+                ["run_peek_worker.exe", IS_WIN_SVC]
+            )
+            self._runningPid = proc.pid
+            self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
-            # # Prioritise this import to ensure configureCeleryLogging is registered
-            # # as the first celery worker signal
-            # from peek_platform import ConfigCeleryApp
-            # ConfigCeleryApp.__unused = False
-
-            # from peek_plugin_base.worker import CeleryDbConnInit
-            # CeleryDbConnInit.__unused = False
-        
-            # # Patch the restart method for windows services
-            # class _Restart:
-            #     def _restartProcess(self):
-            #         from peek_worker.CeleryApp import celeryApp
-            #         celeryApp.control.broadcast('shutdown')
-
-            # # Patch the restart call for windows
-            # from peek_worker.sw_install.PeekSwInstallManager import PeekSwInstallManager
-            # PeekSwInstallManager.restartProcess = _Restart._restartProcess
-
-            # from peek_platform.util.LogUtil import setupServiceLogOutput
-            # setupServiceLogOutput(PeekSvc._svc_name_)
-
-            run_peek_worker.main()
+            proc.communicate()
 
         except Exception as e:
             logger.exception(e)
             raise
-
-
-
-
-# end patch
 
 def main():
     win32serviceutil.HandleCommandLine(PeekSvc)
