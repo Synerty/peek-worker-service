@@ -21,11 +21,11 @@ from twisted.internet import reactor, defer
 from peek_platform import PeekPlatformConfig
 from peek_plugin_base.PeekVortexUtil import peekWorkerName, peekServerName
 from txhttputil.site.FileUploadRequest import FileUploadRequest
-from txhttputil.util.LoggingUtil import setupLogging
+from peek_platform.util.LogUtil import setupPeekLogger
 from vortex.DeferUtil import vortexLogFailure
 from vortex.VortexFactory import VortexFactory
 
-setupLogging()
+setupPeekLogger(peekWorkerName)
 
 logger = logging.getLogger(__name__)
 

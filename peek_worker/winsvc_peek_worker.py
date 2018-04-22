@@ -1,7 +1,7 @@
 import platform
 
 import peek_worker
-from peek_platform.util.LogUtil import setupServiceLogOutput
+from peek_platform.util.LogUtil import setupPeekLogger
 
 try:
     import win32serviceutil
@@ -65,7 +65,7 @@ PeekSwInstallManager.restartProcess = _Restart._restartProcess
 # end patch
 
 def main():
-    setupServiceLogOutput(PeekSvc._svc_name_)
+    setupPeekLogger(PeekSvc._svc_name_)
     win32serviceutil.HandleCommandLine(PeekSvc)
 
 
