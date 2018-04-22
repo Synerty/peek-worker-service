@@ -1,25 +1,20 @@
-import platform
+import logging
 
-import peek_worker
-from peek_platform.util.LogUtil import setupPeekLogger
 
-try:
-    import win32serviceutil
-    import win32service
-    import win32event
-except ImportError as e:
-    if platform.system() is "Windows":
-        raise
+# import peek_worker
+
+import win32serviceutil
+import win32service
+import win32event
 
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred
 
-from peek_worker import run_peek_worker
-
+logger = logging.getLogger(__name__)
 
 class PeekSvc(win32serviceutil.ServiceFramework):
     _svc_name_ = "peek_worker"
-    _svc_display_name_ = "Peek Worker " + peek_worker.__version__
+    _svc_display_name_ = "Peek Worker " #+ peek_worker.__version__
 
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
@@ -42,30 +37,46 @@ class PeekSvc(win32serviceutil.ServiceFramework):
         celeryApp.control.broadcast('shutdown')
 
     def SvcDoRun(self):
-        self.ReportServiceStatus(win32service.SERVICE_START_PENDING)
-        reactor.callLater(1, self._notifyOfStart)
-        run_peek_worker.main()
+        try:
+            from peek_worker import run_peek_worker
+
+            # # Setup service status notifiers
+            # self.ReportServiceStatus(win32service.SERVICE_START_PENDING)
+            # reactor.callLater(1, self._notifyOfStart)
+
+            # # Prioritise this import to ensure configureCeleryLogging is registered
+            # # as the first celery worker signal
+            # from peek_platform import ConfigCeleryApp
+            # ConfigCeleryApp.__unused = False
+
+            # from peek_plugin_base.worker import CeleryDbConnInit
+            # CeleryDbConnInit.__unused = False
+        
+            # # Patch the restart method for windows services
+            # class _Restart:
+            #     def _restartProcess(self):
+            #         from peek_worker.CeleryApp import celeryApp
+            #         celeryApp.control.broadcast('shutdown')
+
+            # # Patch the restart call for windows
+            # from peek_worker.sw_install.PeekSwInstallManager import PeekSwInstallManager
+            # PeekSwInstallManager.restartProcess = _Restart._restartProcess
+
+            # from peek_platform.util.LogUtil import setupServiceLogOutput
+            # setupServiceLogOutput(PeekSvc._svc_name_)
+
+            run_peek_worker.main()
+
+        except Exception as e:
+            logger.exception(e)
+            raise
 
 
-# Patch the restart method for windows services
-class _Restart:
-    def _restartProcess(self):
-
-        # Shutting down celery workers
-        from peek_worker.CeleryApp import celeryApp
-        celeryApp.control.broadcast('shutdown')
-
-
-# Patch the restart call for windows
-
-from peek_worker.sw_install.PeekSwInstallManager import PeekSwInstallManager
-PeekSwInstallManager.restartProcess = _Restart._restartProcess
 
 
 # end patch
 
 def main():
-    setupPeekLogger(PeekSvc._svc_name_)
     win32serviceutil.HandleCommandLine(PeekSvc)
 
 
