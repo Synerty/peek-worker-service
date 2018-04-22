@@ -15,7 +15,10 @@ class PeekSvc(win32serviceutil.ServiceFramework):
     _svc_name_ = "peek-worker"
     _svc_display_name_ = "Peek Worker " + peek_worker.__version__
     _exe_args_ = IS_WIN_SVC  # Not needed here
-    _svc_deps_ = ["RpcSs", "postgres-10", "Redis", "RabbitMQ"]
+
+    # The worker doesn't start until the peek-server is up and running.
+    # We might not be running on the same box as the redis, postgres, etc.
+    _svc_deps_ = ["RpcSs"]
 
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
