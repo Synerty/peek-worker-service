@@ -1,5 +1,5 @@
 import logging
-from typing import Type, Tuple
+from typing import Type, Tuple, List
 
 from twisted.internet.defer import inlineCallbacks
 
@@ -43,7 +43,7 @@ class WorkerPluginLoader(PluginLoaderABC, _CeleryLoaderMixin):
         return PluginWorkerEntryHookABC
 
     @property
-    def _platformServiceNames(self) -> [str]:
+    def _platformServiceNames(self) -> List[str]:
         return ["worker"]
 
     @inlineCallbacks
