@@ -88,6 +88,8 @@ def twistedMain():
                                       PeekPlatformConfig.config.peekServerVortexTcpPort)
     d.addErrback(vortexLogFailure, logger, consumeError=True)
 
+
+    # Software update check is not a thing any more
     # Start Update Handler,
     # Add both, The peek client_fe_app might fail to connect, and if it does, the payload
     # sent from the peekSwUpdater will be queued and sent when it does connect.
