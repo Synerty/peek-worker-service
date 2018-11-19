@@ -50,6 +50,10 @@ def setupPlatform():
     from peek_worker.PeekWorkerConfig import PeekWorkerConfig
     PeekPlatformConfig.config = PeekWorkerConfig()
 
+    # Update the version in the config file
+    from peek_worker import __version__
+    PeekPlatformConfig.config.platformVersion = __version__
+
     # Set default logging level
     logging.root.setLevel(PeekPlatformConfig.config.loggingLevel)
 
