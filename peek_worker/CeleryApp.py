@@ -25,5 +25,6 @@ def start(workerConfig:PeekFileConfigWorkerMixin):
     # Create and set this attribute so that the CeleryDbConn can use it
     # Worker is passed as sender to @worker_init.connect
     celeryApp.peekDbConnectString = PeekPlatformConfig.config.dbConnectString
+    celeryApp.peekDbEngineArgs = PeekPlatformConfig.config.dbEngineArgs
 
     celeryApp.worker_main()
