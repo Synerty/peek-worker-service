@@ -16,7 +16,7 @@ def start(workerConfig:PeekFileConfigWorkerMixin):
 
     celeryApp.conf.update(
         # DbConnection MUST BE FIRST, so that it creates a new connection
-        CELERY_INCLUDE=[
+        include=[
             'peek_platform.ConfigCeleryApp', # Load the vortex serialisation
             'peek_plugin_base.worker.CeleryDbConnInit'
             ] + pluginIncludes,
