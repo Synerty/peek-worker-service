@@ -61,10 +61,4 @@ class WorkerPluginLoader(PluginLoaderABC, _CeleryLoaderMixin):
         # Load the plugin
         yield pluginMain.load()
 
-        # Configure the celery app in the worker
-        # This is not the worker that will be started, it allows the worker to queue tasks
-        from peek_platform.ConfigCeleryApp import configureCeleryApp
-        from peek_platform import PeekPlatformConfig
-        configureCeleryApp(pluginMain.celeryApp, PeekPlatformConfig.config)
-
         self._loadedPlugins[pluginName] = pluginMain

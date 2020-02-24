@@ -68,6 +68,13 @@ def setupPlatform():
     DirSettings.tmpDirPath = PeekPlatformConfig.config.tmpPath
     FileUploadRequest.tmpFilePath = PeekPlatformConfig.config.tmpPath
 
+    # Configure the celery app in the worker
+    # This is not the worker that will be started, it allows the worker to queue tasks
+    from peek_platform.ConfigCeleryApp import configureCeleryApp
+    from peek_platform import PeekPlatformConfig
+    from peek_plugin_base.worker.CeleryApp import celeryApp
+    configureCeleryApp(celeryApp, PeekPlatformConfig.config)
+
 
 def twistedMain():
     # defer.setDebugging(True)
