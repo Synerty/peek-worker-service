@@ -57,8 +57,14 @@ def setupPlatform():
     # Set default logging level
     logging.root.setLevel(PeekPlatformConfig.config.loggingLevel)
 
+    # Enable deferred debugging if DEBUG is on.
     if logging.root.level == logging.DEBUG:
         defer.setDebugging(True)
+
+    # If we need to enable memory debugging, turn that on.
+    if PeekPlatformConfig.config.loggingDumpMemory:
+        from peek_platform.util.MemUtil import setupMemoryDebugging
+        setupMemoryDebugging(peekServerName)
 
     # The worker doesn't need any threads
     reactor.suggestThreadPoolSize(1)
