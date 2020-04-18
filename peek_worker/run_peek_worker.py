@@ -62,9 +62,10 @@ def setupPlatform():
         defer.setDebugging(True)
 
     # If we need to enable memory debugging, turn that on.
-    if PeekPlatformConfig.config.loggingDumpMemory:
+    if PeekPlatformConfig.config.loggingDebugMemoryLevel:
         from peek_platform.util.MemUtil import setupMemoryDebugging
-        setupMemoryDebugging(peekServerName)
+        setupMemoryDebugging(PeekPlatformConfig.componentName,
+                             PeekPlatformConfig.config.loggingDebugMemoryLevel)
 
     # The worker doesn't need any threads
     reactor.suggestThreadPoolSize(1)
