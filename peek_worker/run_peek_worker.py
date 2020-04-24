@@ -15,13 +15,13 @@ import logging
 import threading
 from threading import Thread
 
+from peek_platform import PeekPlatformConfig
+from peek_platform.util.LogUtil import setupPeekLogger, updatePeekLoggerHandlers, \
+    setupLoggingToSysloyServer
+from peek_plugin_base.PeekVortexUtil import peekWorkerName, peekServerName
 from pytmpdir.Directory import DirSettings
 from twisted.internet import reactor, defer
-
-from peek_platform import PeekPlatformConfig
-from peek_plugin_base.PeekVortexUtil import peekWorkerName, peekServerName
 from txhttputil.site.FileUploadRequest import FileUploadRequest
-from peek_platform.util.LogUtil import setupPeekLogger
 from vortex.DeferUtil import vortexLogFailure
 from vortex.VortexFactory import VortexFactory
 
@@ -56,6 +56,14 @@ def setupPlatform():
 
     # Set default logging level
     logging.root.setLevel(PeekPlatformConfig.config.loggingLevel)
+    updatePeekLoggerHandlers(PeekPlatformConfig.componentName,
+                             PeekPlatformConfig.config.loggingRotateSizeMb,
+                             PeekPlatformConfig.config.loggingRotationsToKeep)
+
+    if PeekPlatformConfig.config.loggingLogToSyslogHost:
+        setupLoggingToSysloyServer(PeekPlatformConfig.config.loggingLogToSyslogHost,
+                                   PeekPlatformConfig.config.loggingLogToSyslogPort,
+                                   PeekPlatformConfig.config.loggingLogToSyslogFacility)
 
     # Enable deferred debugging if DEBUG is on.
     if logging.root.level == logging.DEBUG:
@@ -95,9 +103,9 @@ def twistedMain():
         PeekPlatformConfig.peekSwInstallManager.restartProcess()
 
     (VortexFactory.subscribeToVortexStatusChange(peekServerName)
-        .filter(lambda online: online == False)
-        .subscribe(on_next=restart)
-        )
+     .filter(lambda online: online == False)
+     .subscribe(on_next=restart)
+     )
 
     # First, setup the VortexServer Worker
     from peek_platform import PeekPlatformConfig
@@ -105,7 +113,6 @@ def twistedMain():
                                       PeekPlatformConfig.config.peekServerHost,
                                       PeekPlatformConfig.config.peekServerVortexTcpPort)
     d.addErrback(vortexLogFailure, logger, consumeError=True)
-
 
     # Software update check is not a thing any more
     # Start Update Handler,
