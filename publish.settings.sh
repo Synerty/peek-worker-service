@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PY_PACKAGE="peek_worker"
+PY_PACKAGE="peek_worker_service"
 PYPI_PUBLISH="1"
 
 

@@ -6,7 +6,7 @@ from twisted.internet.defer import inlineCallbacks
 from peek_platform.plugin.PluginLoaderABC import PluginLoaderABC
 from peek_plugin_base.PluginCommonEntryHookABC import PluginCommonEntryHookABC
 from peek_plugin_base.worker.PluginWorkerEntryHookABC import PluginWorkerEntryHookABC
-from peek_worker.plugin.PeekWorkerPlatformHook import PeekWorkerPlatformHook
+from peek_worker_service.plugin.PeekWorkerPlatformHook import PeekWorkerPlatformHook
 
 logger = logging.getLogger(__name__)
 

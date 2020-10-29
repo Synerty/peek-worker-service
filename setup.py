@@ -2,8 +2,8 @@ import os
 import shutil
 from setuptools import setup
 
-pip_package_name = "peek-worker"
-py_package_name = "peek_worker"
+pip_package_name = "peek-worker-service"
+py_package_name = "peek_worker_service"
 package_version = '0.0.0'
 
 egg_info = "%s.egg-info" % pip_package_name
@@ -43,8 +43,8 @@ setup(
     package_data={'': package_files},
     entry_points={
         'console_scripts': [
-            'run_peek_worker = peek_worker.run_peek_worker:main',
-            'winsvc_peek_worker = peek_worker.winsvc_peek_worker:main',
+            'run_peek_worker_service = peek_worker_service.run_peek_worker_service:main',
+            'winsvc_peek_worker_service = peek_worker_service.winsvc_peek_worker_service:main',
         ],
     },
     install_requires=["peek-platform"],

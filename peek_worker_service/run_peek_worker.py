@@ -35,23 +35,23 @@ def setupPlatform():
     PeekPlatformConfig.componentName = peekWorkerName
 
     # Tell the platform classes about our instance of the pluginSwInstallManager
-    from peek_worker.sw_install.PluginSwInstallManager import PluginSwInstallManager
+    from peek_worker_service.sw_install.PluginSwInstallManager import PluginSwInstallManager
     PeekPlatformConfig.pluginSwInstallManager = PluginSwInstallManager()
 
     # Tell the platform classes about our instance of the PeekSwInstallManager
-    from peek_worker.sw_install.PeekSwInstallManager import PeekSwInstallManager
+    from peek_worker_service.sw_install.PeekSwInstallManager import PeekSwInstallManager
     PeekPlatformConfig.peekSwInstallManager = PeekSwInstallManager()
 
     # Tell the platform classes about our instance of the PeekLoaderBase
-    from peek_worker.plugin.WorkerPluginLoader import WorkerPluginLoader
+    from peek_worker_service.plugin.WorkerPluginLoader import WorkerPluginLoader
     PeekPlatformConfig.pluginLoader = WorkerPluginLoader()
 
     # The config depends on the componentName, order is important
-    from peek_worker.PeekWorkerConfig import PeekWorkerConfig
+    from peek_worker_service.PeekWorkerConfig import PeekWorkerConfig
     PeekPlatformConfig.config = PeekWorkerConfig()
 
     # Update the version in the config file
-    from peek_worker import __version__
+    from peek_worker_service import __version__
     PeekPlatformConfig.config.platformVersion = __version__
 
     # Set default logging level
@@ -155,7 +155,7 @@ def celeryMain():
 
     # Load all Plugins
     logger.info("Starting Celery")
-    from peek_worker import CeleryApp
+    from peek_worker_service import CeleryApp
     CeleryApp.start(PeekPlatformConfig.config)
 
 

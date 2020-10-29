@@ -5,18 +5,18 @@ import win32api
 import win32service
 import win32serviceutil
 
-import peek_worker
+import peek_worker_service
 
 logger = logging.getLogger(__name__)
 from peek_platform.sw_install.PeekSwInstallManagerABC import IS_WIN_SVC
 
 
 class PeekSvc(win32serviceutil.ServiceFramework):
-    _svc_name_ = "peek-worker"
-    _svc_display_name_ = "Peek Worker " + peek_worker.__version__
+    _svc_name_ = "peek-worker-service"
+    _svc_display_name_ = "Peek Worker " + peek_worker_service.__version__
     _exe_args_ = IS_WIN_SVC  # Not needed here
 
-    # The worker doesn't start until the peek-server is up and running.
+    # The worker doesn't start until the peek-logic-service is up and running.
     # We might not be running on the same box as the redis, postgres, etc.
     _svc_deps_ = ["RpcSs"]
 
@@ -43,7 +43,7 @@ class PeekSvc(win32serviceutil.ServiceFramework):
         try:
 
             proc = subprocess.Popen(
-                ["run_peek_worker.exe", IS_WIN_SVC]
+                ["run_peek_worker_service.exe", IS_WIN_SVC]
             )
             self._runningPid = proc.pid
             self.ReportServiceStatus(win32service.SERVICE_RUNNING)
