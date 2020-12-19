@@ -60,6 +60,7 @@ package_files = find_package_files()
 # and no older then this version
 
 requirements = [
+    "peek-plugin-base",
     "peek-platform"
 ]
 
