@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 class _CeleryLoaderMixin:
-    ''' Celery Loader Mixin
+    """Celery Loader Mixin
 
     Separate some logic out into this class
 
-    '''
+    """
 
     @property
     def celeryAppIncludes(self):
@@ -30,7 +30,9 @@ class WorkerPluginLoader(PluginLoaderABC, _CeleryLoaderMixin):
     _instance = None
 
     def __new__(cls, *args, **kwargs):
-        assert cls._instance is None, "WorkerPluginLoader is a singleton, don't construct it"
+        assert (
+            cls._instance is None
+        ), "WorkerPluginLoader is a singleton, don't construct it"
         cls._instance = PluginLoaderABC.__new__(cls)
         return cls._instance
 
@@ -47,16 +49,19 @@ class WorkerPluginLoader(PluginLoaderABC, _CeleryLoaderMixin):
         return ["worker"]
 
     @inlineCallbacks
-    def _loadPluginThrows(self, pluginName: str,
-                          EntryHookClass: Type[PluginCommonEntryHookABC],
-                          pluginRootDir: str,
-                          requiresService: Tuple[str, ...]) -> PluginCommonEntryHookABC:
+    def _loadPluginThrows(
+        self,
+        pluginName: str,
+        EntryHookClass: Type[PluginCommonEntryHookABC],
+        pluginRootDir: str,
+        requiresService: Tuple[str, ...],
+    ) -> PluginCommonEntryHookABC:
         # Everyone gets their own instance of the plugin API
         platformApi = PeekWorkerPlatformHook()
 
-        pluginMain = EntryHookClass(pluginName=pluginName,
-                                    pluginRootDir=pluginRootDir,
-                                    platform=platformApi)
+        pluginMain = EntryHookClass(
+            pluginName=pluginName, pluginRootDir=pluginRootDir, platform=platformApi
+        )
 
         # Load the plugin
         yield pluginMain.load()

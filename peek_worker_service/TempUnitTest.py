@@ -1,7 +1,8 @@
 import unittest
 from unittest import skip
 
-''' DELETE ME when the first real test is added'''
+""" DELETE ME when the first real test is added"""
+
 
 class TempUnitTest(unittest.TestCase):
     def testPass(self):
@@ -10,5 +11,3 @@ class TempUnitTest(unittest.TestCase):
     @skip("Tesging skip")
     def testFail(self):
         self.assertTrue(False)
-
-

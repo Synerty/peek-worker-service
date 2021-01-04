@@ -31,8 +31,7 @@ class PeekSvc(win32serviceutil.ServiceFramework):
             return
 
         PROCESS_TERMINATE = 1
-        handle = win32api.OpenProcess(
-            PROCESS_TERMINATE, False, self._runningPid)
+        handle = win32api.OpenProcess(PROCESS_TERMINATE, False, self._runningPid)
         win32api.TerminateProcess(handle, -1)
         win32api.CloseHandle(handle)
 
@@ -42,9 +41,7 @@ class PeekSvc(win32serviceutil.ServiceFramework):
         self.ReportServiceStatus(win32service.SERVICE_START_PENDING)
         try:
 
-            proc = subprocess.Popen(
-                ["run_peek_worker_service.exe", IS_WIN_SVC]
-            )
+            proc = subprocess.Popen(["run_peek_worker_service.exe", IS_WIN_SVC])
             self._runningPid = proc.pid
             self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
@@ -59,5 +56,5 @@ def main():
     win32serviceutil.HandleCommandLine(PeekSvc)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

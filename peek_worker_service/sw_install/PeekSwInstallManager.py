@@ -3,16 +3,15 @@ import logging
 from peek_platform import PeekPlatformConfig
 from peek_platform.sw_install.PeekSwInstallManagerABC import PeekSwInstallManagerABC
 
-__author__ = 'synerty'
+__author__ = "synerty"
 
 logger = logging.getLogger(__name__)
 
 
 class PeekSwInstallManager(PeekSwInstallManagerABC):
-
     def __init__(self):
         PeekSwInstallManagerABC.__init__(self)
-        self._restarting  = False
+        self._restarting = False
 
     def _stopCode(self):
         PeekPlatformConfig.pluginLoader.unloadAllPlugins()
@@ -31,8 +30,8 @@ class PeekSwInstallManager(PeekSwInstallManagerABC):
 
         logger.info("Shutting down celery workers")
         from peek_plugin_base.worker.CeleryApp import celeryApp
-        celeryApp.control.broadcast('shutdown')
 
+        celeryApp.control.broadcast("shutdown")
 
     @property
     def restartTriggered(self):
@@ -40,5 +39,3 @@ class PeekSwInstallManager(PeekSwInstallManagerABC):
 
     def realyRestartProcess(self):
         PeekSwInstallManagerABC.restartProcess(self)
-
-

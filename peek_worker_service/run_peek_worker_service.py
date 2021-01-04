@@ -16,8 +16,11 @@ import threading
 from threading import Thread
 
 from peek_platform import PeekPlatformConfig
-from peek_platform.util.LogUtil import setupPeekLogger, updatePeekLoggerHandlers, \
-    setupLoggingToSysloyServer
+from peek_platform.util.LogUtil import (
+    setupPeekLogger,
+    updatePeekLoggerHandlers,
+    setupLoggingToSysloyServer,
+)
 from peek_plugin_base.PeekVortexUtil import peekWorkerName, peekServerName
 from pytmpdir.Directory import DirSettings
 from twisted.internet import reactor, defer
@@ -32,39 +35,51 @@ logger = logging.getLogger(__name__)
 
 def setupPlatform():
     from peek_platform import PeekPlatformConfig
+
     PeekPlatformConfig.componentName = peekWorkerName
 
     # Tell the platform classes about our instance of the pluginSwInstallManager
-    from peek_worker_service.sw_install.PluginSwInstallManager import PluginSwInstallManager
+    from peek_worker_service.sw_install.PluginSwInstallManager import (
+        PluginSwInstallManager,
+    )
+
     PeekPlatformConfig.pluginSwInstallManager = PluginSwInstallManager()
 
     # Tell the platform classes about our instance of the PeekSwInstallManager
     from peek_worker_service.sw_install.PeekSwInstallManager import PeekSwInstallManager
+
     PeekPlatformConfig.peekSwInstallManager = PeekSwInstallManager()
 
     # Tell the platform classes about our instance of the PeekLoaderBase
     from peek_worker_service.plugin.WorkerPluginLoader import WorkerPluginLoader
+
     PeekPlatformConfig.pluginLoader = WorkerPluginLoader()
 
     # The config depends on the componentName, order is important
     from peek_worker_service.PeekWorkerConfig import PeekWorkerConfig
+
     PeekPlatformConfig.config = PeekWorkerConfig()
 
     # Update the version in the config file
     from peek_worker_service import __version__
+
     PeekPlatformConfig.config.platformVersion = __version__
 
     # Set default logging level
     logging.root.setLevel(PeekPlatformConfig.config.loggingLevel)
-    updatePeekLoggerHandlers(PeekPlatformConfig.componentName,
-                             PeekPlatformConfig.config.loggingRotateSizeMb,
-                             PeekPlatformConfig.config.loggingRotationsToKeep,
-                             PeekPlatformConfig.config.logToStdout)
+    updatePeekLoggerHandlers(
+        PeekPlatformConfig.componentName,
+        PeekPlatformConfig.config.loggingRotateSizeMb,
+        PeekPlatformConfig.config.loggingRotationsToKeep,
+        PeekPlatformConfig.config.logToStdout,
+    )
 
     if PeekPlatformConfig.config.loggingLogToSyslogHost:
-        setupLoggingToSysloyServer(PeekPlatformConfig.config.loggingLogToSyslogHost,
-                                   PeekPlatformConfig.config.loggingLogToSyslogPort,
-                                   PeekPlatformConfig.config.loggingLogToSyslogFacility)
+        setupLoggingToSysloyServer(
+            PeekPlatformConfig.config.loggingLogToSyslogHost,
+            PeekPlatformConfig.config.loggingLogToSyslogPort,
+            PeekPlatformConfig.config.loggingLogToSyslogFacility,
+        )
 
     # Enable deferred debugging if DEBUG is on.
     if logging.root.level == logging.DEBUG:
@@ -73,8 +88,11 @@ def setupPlatform():
     # If we need to enable memory debugging, turn that on.
     if PeekPlatformConfig.config.loggingDebugMemoryMask:
         from peek_platform.util.MemUtil import setupMemoryDebugging
-        setupMemoryDebugging(PeekPlatformConfig.componentName,
-                             PeekPlatformConfig.config.loggingDebugMemoryMask)
+
+        setupMemoryDebugging(
+            PeekPlatformConfig.componentName,
+            PeekPlatformConfig.config.loggingDebugMemoryMask,
+        )
 
     # The worker doesn't need any threads
     reactor.suggestThreadPoolSize(1)
@@ -89,6 +107,7 @@ def setupPlatform():
     from peek_platform.ConfigCeleryApp import configureCeleryApp
     from peek_platform import PeekPlatformConfig
     from peek_plugin_base.worker.CeleryApp import celeryApp
+
     configureCeleryApp(celeryApp, PeekPlatformConfig.config)
 
 
@@ -101,18 +120,23 @@ def twistedMain():
     # Make the agent restart when the server restarts, or when it looses connection
     def restart(status):
         from peek_platform import PeekPlatformConfig
+
         PeekPlatformConfig.peekSwInstallManager.restartProcess()
 
-    (VortexFactory.subscribeToVortexStatusChange(peekServerName)
-     .filter(lambda online: online == False)
-     .subscribe(on_next=restart)
-     )
+    (
+        VortexFactory.subscribeToVortexStatusChange(peekServerName)
+        .filter(lambda online: online == False)
+        .subscribe(on_next=restart)
+    )
 
     # First, setup the VortexServer Worker
     from peek_platform import PeekPlatformConfig
-    d = VortexFactory.createTcpClient(PeekPlatformConfig.componentName,
-                                      PeekPlatformConfig.config.peekServerHost,
-                                      PeekPlatformConfig.config.peekServerVortexTcpPort)
+
+    d = VortexFactory.createTcpClient(
+        PeekPlatformConfig.componentName,
+        PeekPlatformConfig.config.peekServerHost,
+        PeekPlatformConfig.config.peekServerVortexTcpPort,
+    )
     d.addErrback(vortexLogFailure, logger, consumeError=True)
 
     # Software update check is not a thing any more
@@ -135,9 +159,12 @@ def twistedMain():
     d.addErrback(vortexLogFailure, logger, consumeError=True)
 
     # Log that the reactor has started
-    d.addCallback(lambda _:
-                  logger.info('Peek Worker is running, version=%s',
-                              PeekPlatformConfig.config.platformVersion))
+    d.addCallback(
+        lambda _: logger.info(
+            "Peek Worker is running, version=%s",
+            PeekPlatformConfig.config.platformVersion,
+        )
+    )
 
     # Unlock the mutex
     d.addCallback(lambda _: twistedPluginsLoadedMutex.release())
@@ -156,6 +183,7 @@ def celeryMain():
     # Load all Plugins
     logger.info("Starting Celery")
     from peek_worker_service import CeleryApp
+
     CeleryApp.start(PeekPlatformConfig.config)
 
 
@@ -207,5 +235,5 @@ def main():
     logger.info("Worker Service shutdown complete.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -14,11 +14,10 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-
 class PeekWorkerConfigTest(unittest.TestCase):
     COMPONENT_NAME = "unit_test"
-    HOME_DIR = os.path.expanduser('~/%s.home' % COMPONENT_NAME)
-    CONFIG_FILE_PATH = os.path.join(HOME_DIR, 'config.json')
+    HOME_DIR = os.path.expanduser("~/%s.home" % COMPONENT_NAME)
+    CONFIG_FILE_PATH = os.path.join(HOME_DIR, "config.json")
 
     def _rmHome(self):
         if os.path.exists(self.HOME_DIR):
@@ -29,7 +28,7 @@ class PeekWorkerConfigTest(unittest.TestCase):
         self._rmHome()
         os.makedirs(self.HOME_DIR, PeekWorkerConfig.DEFAULT_DIR_CHMOD)
 
-        with open(self.CONFIG_FILE_PATH, 'w') as fobj:
+        with open(self.CONFIG_FILE_PATH, "w") as fobj:
             fobj.write('{"nothing":{"is_true":true}}')
 
     def tearDown(self):
@@ -39,10 +38,10 @@ class PeekWorkerConfigTest(unittest.TestCase):
         bas = PeekWorkerConfig()
 
         # Defaults
-        logger.info('platformVersion = %s', bas.platformVersion)
-        bas.platformVersion = '4.4.4'
+        logger.info("platformVersion = %s", bas.platformVersion)
+        bas.platformVersion = "4.4.4"
 
         PeekWorkerConfig._PeekFileConfigBase__instance = None
 
-        logger.info('platformVersion = %s', bas.platformVersion)
-        self.assertEqual(bas.platformVersion, '4.4.4')
+        logger.info("platformVersion = %s", bas.platformVersion)
+        self.assertEqual(bas.platformVersion, "4.4.4")
