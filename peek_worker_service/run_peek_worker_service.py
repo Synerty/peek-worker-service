@@ -22,7 +22,7 @@ from peek_platform.util.LogUtil import (
     setupLoggingToSysloyServer,
 )
 from peek_plugin_base.PeekVortexUtil import peekWorkerName, peekServerName
-from pytmpdir.Directory import DirSettings
+from pytmpdir.dir_setting import DirSetting
 from twisted.internet import reactor, defer
 from txhttputil.site.FileUploadRequest import FileUploadRequest
 from vortex.DeferUtil import vortexLogFailure
@@ -46,7 +46,9 @@ def setupPlatform():
     PeekPlatformConfig.pluginSwInstallManager = PluginSwInstallManager()
 
     # Tell the platform classes about our instance of the PeekSwInstallManager
-    from peek_worker_service.sw_install.PeekSwInstallManager import PeekSwInstallManager
+    from peek_worker_service.sw_install.PeekSwInstallManager import (
+        PeekSwInstallManager,
+    )
 
     PeekPlatformConfig.peekSwInstallManager = PeekSwInstallManager()
 
@@ -98,8 +100,8 @@ def setupPlatform():
     reactor.suggestThreadPoolSize(1)
 
     # Initialise the txhttputil Directory object
-    DirSettings.defaultDirChmod = PeekPlatformConfig.config.DEFAULT_DIR_CHMOD
-    DirSettings.tmpDirPath = PeekPlatformConfig.config.tmpPath
+    DirSetting.defaultDirChmod = PeekPlatformConfig.config.DEFAULT_DIR_CHMOD
+    DirSetting.tmpDirPath = PeekPlatformConfig.config.tmpPath
     FileUploadRequest.tmpFilePath = PeekPlatformConfig.config.tmpPath
 
     # Configure the celery app in the worker
