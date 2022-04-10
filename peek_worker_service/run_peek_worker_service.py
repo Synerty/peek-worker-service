@@ -21,6 +21,7 @@ from peek_platform.util.LogUtil import (
     updatePeekLoggerHandlers,
     setupLoggingToSyslogServer,
 )
+from peek_platform.util.ManHoleUtil import start_manhole
 from peek_plugin_base.PeekVortexUtil import peekWorkerName, peekServerName
 from pytmpdir.dir_setting import DirSetting
 from twisted.internet import reactor, defer
@@ -110,6 +111,15 @@ def setupPlatform():
     from peek_plugin_base.worker.CeleryApp import celeryApp
 
     configureCeleryApp(celeryApp, PeekPlatformConfig.config)
+
+    # Setup manhole
+    if PeekPlatformConfig.config.manholeEnabled:
+        start_manhole(
+            PeekPlatformConfig.config.manholePort,
+            PeekPlatformConfig.config.manholePassword,
+            PeekPlatformConfig.config.manholePublicKeyFile,
+            PeekPlatformConfig.config.manholePrivateKeyFile,
+        )
 
 
 def twistedMain():
