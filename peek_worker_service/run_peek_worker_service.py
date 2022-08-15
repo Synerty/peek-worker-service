@@ -145,7 +145,7 @@ def twistedMain():
 
     scheme = "wss" if PeekPlatformConfig.config.peekServerSSL else "ws"
     host = PeekPlatformConfig.config.peekServerHost
-    port = PeekPlatformConfig.config.peekServerVortexTcpPort
+    port = PeekPlatformConfig.config.peekServerHttpPort
 
     d = VortexFactory.createWebsocketClient(
         PeekPlatformConfig.componentName,
