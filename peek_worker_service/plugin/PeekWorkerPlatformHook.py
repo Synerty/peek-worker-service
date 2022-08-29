@@ -20,7 +20,7 @@ class PeekWorkerPlatformHook(PeekWorkerPlatformHookABC):
     def peekServerSSL(self) -> bool:
         from peek_platform import PeekPlatformConfig
 
-        return PeekPlatformConfig.config.peekServerSSL
+        return PeekPlatformConfig.config.peekServerUseSSL
 
     @property
     def peekServerSSLEnableMutualTLS(self) -> bool:
