@@ -129,7 +129,7 @@ def twistedMain():
     # pydevd.settrace(suspend=False)
 
     # Make the agent restart when the server restarts, or when it looses connection
-    def restart(status):
+    def restart(_=None):
         from peek_platform import PeekPlatformConfig
 
         PeekPlatformConfig.peekSwInstallManager.restartProcess()
@@ -179,7 +179,8 @@ def twistedMain():
     d.addBoth(lambda _: PeekPlatformConfig.pluginLoader.startOptionalPlugins())
 
     # Log Exception, convert the errback to callback
-    d.addErrback(vortexLogFailure, logger, consumeError=True)
+    d.addErrback(vortexLogFailure, logger, consumeError=False)
+    d.addErrback(lambda _: restart())
 
     # Log that the reactor has started
     d.addCallback(
