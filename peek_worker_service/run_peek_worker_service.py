@@ -15,6 +15,8 @@ import logging
 import threading
 from threading import Thread
 
+from setproctitle import setproctitle
+
 from peek_platform import PeekPlatformConfig
 from peek_platform.util.LogUtil import (
     setupPeekLogger,
@@ -38,6 +40,7 @@ def setupPlatform():
     from peek_platform import PeekPlatformConfig
 
     PeekPlatformConfig.componentName = peekWorkerName
+    setproctitle(PeekPlatformConfig.componentName)
 
     # Tell the platform classes about our instance of the pluginSwInstallManager
     from peek_worker_service.sw_install.PluginSwInstallManager import (
