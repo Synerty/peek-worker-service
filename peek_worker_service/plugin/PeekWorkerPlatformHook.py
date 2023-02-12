@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import overload
 
 from peek_plugin_base.worker.PeekWorkerPlatformHookABC import (
@@ -15,6 +16,24 @@ class PeekWorkerPlatformHook(PeekWorkerPlatformHookABC):
         import socket
 
         return "worker|" + socket.gethostname()
+
+    @property
+    def fileStorageDirectory(self) -> Path:
+        from peek_platform import PeekPlatformConfig
+
+        return Path(PeekPlatformConfig.config.pluginDataPath(self._pluginName))
+
+    @property
+    def peekServerHttpPort(self) -> int:
+        from peek_platform import PeekPlatformConfig
+
+        return PeekPlatformConfig.config.dataExchange.peekServerHttpPort
+
+    @property
+    def peekServerHost(self) -> str:
+        from peek_platform import PeekPlatformConfig
+
+        return PeekPlatformConfig.config.dataExchange.peekServerHost
 
     @property
     def peekServerSSL(self) -> bool:
@@ -42,4 +61,12 @@ class PeekWorkerPlatformHook(PeekWorkerPlatformHookABC):
 
         return (
             PeekPlatformConfig.config.peekServerSSLClientMutualTLSCertificateAuthorityBundleFilePath
+        )
+
+    @property
+    def peekServerSSLMutualTLSTrustedPeerCertificateBundleFilePath(self) -> str:
+        from peek_platform import PeekPlatformConfig
+
+        return (
+            PeekPlatformConfig.config.dataExchange.peekServerSSLMutualTLSTrustedPeerCertificateBundleFilePath
         )
